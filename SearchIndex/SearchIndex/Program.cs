@@ -21,18 +21,18 @@ namespace AzureSearch.SDKHowTo
 
             string indexName = configuration["SearchIndexName"];
 
-            //SearchServiceClient serviceClient = CreateSearchServiceClient(configuration);
+            SearchServiceClient serviceClient = CreateSearchServiceClient(configuration);
 
-            //Console.WriteLine("{0}", "Deleting index...\n");
-            //DeleteIndexIfExists(indexName, serviceClient);
+            Console.WriteLine("{0}", "Deleting index...\n");
+            DeleteIndexIfExists(indexName, serviceClient);
 
-            //Console.WriteLine("{0}", "Creating index...\n");
-            //CreateIndex(indexName, serviceClient);
+            Console.WriteLine("{0}", "Creating index...\n");
+            CreateIndex(indexName, serviceClient);
 
-            //ISearchIndexClient indexClient = serviceClient.Indexes.GetClient(indexName);
+            ISearchIndexClient indexClient = serviceClient.Indexes.GetClient(indexName);
 
-            //Console.WriteLine("{0}", "Uploading documents...\n");
-            //UploadDocuments(indexClient);
+            Console.WriteLine("{0}", "Uploading documents...\n");
+            UploadDocuments(indexClient);
 
             ISearchIndexClient indexClientForQueries = CreateSearchIndexClient(indexName, configuration);
 
@@ -70,11 +70,26 @@ namespace AzureSearch.SDKHowTo
 
         private static void CreateIndex(string indexName, SearchServiceClient serviceClient)
         {
+            var synonymMap = new SynonymMap()
+            {
+                Name = "desc-synonymmap",
+                Synonyms = @"hotel, motel\n
+                 internet,wifi\n
+                 five star => luxury\n
+                 economy,
+                 inexpensive => budget"
+            };
+
+            serviceClient.SynonymMaps.CreateOrUpdate(synonymMap);
+
             var definition = new Index()
             {
                 Name = indexName,
                 Fields = FieldBuilder.BuildForType<Hotel>()
             };
+
+            definition.Fields.First(f => f.Name == "Category").SynonymMaps = new[] { "desc-synonymmap" };
+            definition.Fields.First(f => f.Name == "Tags").SynonymMaps = new[] { "desc-synonymmap" };
 
             serviceClient.Indexes.Create(definition);
         }
@@ -496,13 +511,13 @@ namespace AzureSearch.SDKHowTo
             parameters =
                 new SearchParameters()
                 {
-                    SearchFields = new[] { "Category" },
+                    SearchFields = new[] { "HotelName", "Category", "Tags" },
                     Select = new[] { "HotelName" }
                 };
 
-            results = indexClient.Documents.Search<Hotel>("spa", parameters);
+            results = indexClient.Documents.Search<Hotel>("economy AND hotel", parameters);
 
-            //WriteDocuments(results);
+            WriteDocuments(results);
 
             //Console.Write("Apply a filter to the index to find hotels with a room cheaper than $100 per night, ");
             //Console.WriteLine("and return the hotelId and description:\n");
@@ -542,7 +557,7 @@ namespace AzureSearch.SDKHowTo
             //};
             //results = indexClient.Documents.Search<Hotel>("hotel", parameters);
 
-            WriteDocuments(results);
+            //WriteDocuments(results);
         }
 
         private static void WriteDocuments(DocumentSearchResult<Hotel> searchResults)
