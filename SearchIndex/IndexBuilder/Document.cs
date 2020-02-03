@@ -8,18 +8,18 @@ namespace IndexBuilder
     {
         [Key]
         [IsFilterable]
-        [JsonProperty("id")]
+        [JsonProperty("entity_id")]
         public string EntityId { get; set; }
 
-        [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("primary_field")]
-        public string EntityPrimaryField { get; set; }
-
         [IsFilterable, IsFacetable]
-        [JsonProperty("type")]
+        [JsonProperty("entity_type")]
         public string EntityType { get; set; }
 
-        [JsonProperty("entity")]
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("entity_primary_field")]
+        public string EntityPrimaryField { get; set; }
+
+        [JsonProperty("entity_as_json")]
         public string EntityAsJson { get; set; }
 
         //
@@ -28,37 +28,37 @@ namespace IndexBuilder
         // and use a metadata mapping table to dynamically map the selected fields to the index.
         //
         // CDS entity names plus attribute names are defined as the property name in the following properties:
-        // `[JsonProperty("{CDSEntityName}_{CDSAttributeName}")]`
+        // `[JsonProperty("{CDSEntityName}__{CDSAttributeName}")]`
         //
 
         #region Account
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("account_address1_city")]
+        [JsonProperty("account__address1_city")]
         public string AccountAddress1City { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("account_address1_stateorprovince")]
+        [JsonProperty("account__address1_stateorprovince")]
         public string AccountAddress1StateOrProvince { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("account_address1_country")]
+        [JsonProperty("account__address1_country")]
         public string AccountAddress1Country { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("account_telephone1")]
-        public string AccountTelephone1 { get; set; }
+        [JsonProperty("account__telephone1")]
+        public string AccountMainPhone { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("account_emailaddress1")]
-        public string AccountEmailAddress1 { get; set; }
+        [JsonProperty("account__emailaddress1")]
+        public string AccountEmail { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("account_tickersymbol")]
+        [JsonProperty("account__tickersymbol")]
         public string AccountTickerSymbol { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("account_websiteurl")]
+        [JsonProperty("account__websiteurl")]
         public string AccountWebSite { get; set; }
 
         #endregion Account
@@ -66,39 +66,39 @@ namespace IndexBuilder
         #region Opportunity
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("opportunity_stepname")]
-        public string OpportunityStepName { get; set; }
+        [JsonProperty("opportunity__stepname")]
+        public string OpportunityPipelinePhase { get; set; }
 
         #endregion Opportunity
 
         #region Lead
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("lead_subject")]
+        [JsonProperty("lead__subject")]
         public string LeadSubject { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("lead_companyname")]
+        [JsonProperty("lead__companyname")]
         public string LeadCompanyName { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("lead_address1_city")]
+        [JsonProperty("lead__address1_city")]
         public string LeadAddress1City { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("lead_address1_stateorprovince")]
+        [JsonProperty("lead__address1_stateorprovince")]
         public string LeadAddress1StateOrProvince { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("lead_address1_country")]
+        [JsonProperty("lead__address1_country")]
         public string LeadAddress1Country { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("lead_telephone1")]
-        public string LeadTelephone1 { get; set; }
+        [JsonProperty("lead__telephone1")]
+        public string LeadBusinessPhone { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("lead_jobtitle")]
+        [JsonProperty("lead__jobtitle")]
         public string LeadJobTitle { get; set; }
 
         #endregion Lead
@@ -106,31 +106,31 @@ namespace IndexBuilder
         #region Contact
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("contact_jobtitle")]
+        [JsonProperty("contact__jobtitle")]
         public string ContactJobTitle { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("contact_telephone1")]
+        [JsonProperty("contact__telephone1")]
         public string ContactBusinessPhone { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("contact_mobilephone")]
+        [JsonProperty("contact__mobilephone")]
         public string ContactMobilePhone { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("contact_emailaddress1")]
+        [JsonProperty("contact__emailaddress1")]
         public string ContactEmail { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("contact_address1_city")]
+        [JsonProperty("contact__address1_city")]
         public string ContactAddress1City { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("contact_address1_stateorprovince")]
+        [JsonProperty("contact__address1_stateorprovince")]
         public string ContactAddress1StateOrProvince { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("contact_address1_country")]
+        [JsonProperty("contact__address1_country")]
         public string ContactAddress1Country { get; set; }
 
         #endregion Contact
@@ -138,15 +138,15 @@ namespace IndexBuilder
         #region User
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("systemuser_internalemailaddress")]
+        [JsonProperty("systemuser__internalemailaddress")]
         public string UserPrimaryEmail { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("systemuser_address1_telephone1")]
+        [JsonProperty("systemuser__address1_telephone1")]
         public string UserMainPhone { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("systemuser_jobtitle")]
+        [JsonProperty("systemuser__jobtitle")]
         public string UserJobTitle { get; set; }
 
         #endregion User
