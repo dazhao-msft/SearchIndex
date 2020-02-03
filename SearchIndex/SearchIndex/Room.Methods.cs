@@ -12,17 +12,17 @@
         {
             var builder = new StringBuilder();
 
-            if (!String.IsNullOrEmpty(Description))
+            if (!string.IsNullOrEmpty(Description))
             {
                 builder.AppendFormat("Description: {0}\n", Description);
             }
 
-            if (!String.IsNullOrEmpty(DescriptionFr))
+            if (!string.IsNullOrEmpty(DescriptionFr))
             {
                 builder.AppendFormat("DescriptionFr: {0}\n", DescriptionFr);
             }
 
-            if (!String.IsNullOrEmpty(Type))
+            if (!string.IsNullOrEmpty(Type))
             {
                 builder.AppendFormat("Type: {0}\n", Type);
             }
@@ -32,7 +32,7 @@
                 builder.AppendFormat("BaseRate: {0}\n", BaseRate);
             }
 
-            if (!String.IsNullOrEmpty(BedOptions))
+            if (!string.IsNullOrEmpty(BedOptions))
             {
                 builder.AppendFormat("BedOptions: {0}\n", BedOptions);
             }
@@ -46,7 +46,7 @@
 
             if (Tags != null && Tags.Length > 0)
             {
-                builder.AppendFormat("Tags: [ {0} ]\n", String.Join(", ", Tags));
+                builder.AppendFormat("Tags: [ {0} ]\n", string.Join(", ", Tags));
             }
 
             return builder.ToString();

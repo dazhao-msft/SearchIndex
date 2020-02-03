@@ -287,7 +287,7 @@ namespace AzureSearch.SDKHowTo
                 // retrying. For this simple demo, we just log the failed document keys and continue.
                 Console.WriteLine(
                     "Failed to index some of the documents: {0}",
-                    String.Join(", ", e.IndexingResults.Where(r => !r.Succeeded).Select(r => r.Key)));
+                    string.Join(", ", e.IndexingResults.Where(r => !r.Succeeded).Select(r => r.Key)));
             }
 
             Console.WriteLine("Waiting for documents to be indexed...\n");

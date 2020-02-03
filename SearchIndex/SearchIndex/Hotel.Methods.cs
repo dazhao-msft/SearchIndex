@@ -12,34 +12,34 @@
         {
             var builder = new StringBuilder();
 
-            if (!String.IsNullOrEmpty(HotelId))
+            if (!string.IsNullOrEmpty(HotelId))
             {
                 builder.AppendFormat("HotelId: {0}\n", HotelId);
             }
 
-            if (!String.IsNullOrEmpty(HotelName))
+            if (!string.IsNullOrEmpty(HotelName))
             {
                 builder.AppendFormat("Name: {0}\n", HotelName);
             }
 
-            if (!String.IsNullOrEmpty(Description))
+            if (!string.IsNullOrEmpty(Description))
             {
                 builder.AppendFormat("Description: {0}\n", Description);
             }
 
-            if (!String.IsNullOrEmpty(DescriptionFr))
+            if (!string.IsNullOrEmpty(DescriptionFr))
             {
                 builder.AppendFormat("Description (French): {0}\n", DescriptionFr);
             }
 
-            if (!String.IsNullOrEmpty(Category))
+            if (!string.IsNullOrEmpty(Category))
             {
                 builder.AppendFormat("Category: {0}\n", Category);
             }
 
             if (Tags != null && Tags.Length > 0)
             {
-                builder.AppendFormat("Tags: [ {0} ]\n", String.Join(", ", Tags));
+                builder.AppendFormat("Tags: [ {0} ]\n", string.Join(", ", Tags));
             }
 
             if (ParkingIncluded.HasValue)

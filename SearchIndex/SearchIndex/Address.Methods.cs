@@ -22,10 +22,10 @@
         }
 
         [JsonIgnore]
-        public bool IsEmpty => String.IsNullOrEmpty(StreetAddress) &&
-                               String.IsNullOrEmpty(City) &&
-                               String.IsNullOrEmpty(StateProvince) &&
-                               String.IsNullOrEmpty(PostalCode) &&
-                               String.IsNullOrEmpty(Country);
+        public bool IsEmpty => string.IsNullOrEmpty(StreetAddress) &&
+                               string.IsNullOrEmpty(City) &&
+                               string.IsNullOrEmpty(StateProvince) &&
+                               string.IsNullOrEmpty(PostalCode) &&
+                               string.IsNullOrEmpty(Country);
     }
 }
