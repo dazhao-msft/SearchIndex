@@ -39,7 +39,7 @@ namespace IndexBuilder
 
         [IsSearchable, IsFilterable, IsFacetable]
         [JsonProperty("account_address1_stateorprovince")]
-        public string AccountAddress1State { get; set; }
+        public string AccountAddress1StateOrProvince { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
         [JsonProperty("account_address1_country")]
@@ -87,7 +87,7 @@ namespace IndexBuilder
 
         [IsSearchable, IsFilterable, IsFacetable]
         [JsonProperty("lead_address1_stateorprovince")]
-        public string LeadAddress1State { get; set; }
+        public string LeadAddress1StateOrProvince { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
         [JsonProperty("lead_address1_country")]
@@ -102,6 +102,38 @@ namespace IndexBuilder
         public string LeadJobTitle { get; set; }
 
         #endregion Lead
+
+        #region Contact
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("contact_jobtitle")]
+        public string ContactJobTitle { get; set; }
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("contact_telephone1")]
+        public string ContactBusinessPhone { get; set; }
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("contact_mobilephone")]
+        public string ContactMobilePhone { get; set; }
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("contact_emailaddress1")]
+        public string ContactEmail { get; set; }
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("contact_address1_city")]
+        public string ContactAddress1City { get; set; }
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("contact_address1_stateorprovince")]
+        public string ContactAddress1StateOrProvince { get; set; }
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("contact_address1_country")]
+        public string ContactAddress1Country { get; set; }
+
+        #endregion Contact
 
         #region User
 
