@@ -21,18 +21,18 @@ namespace AzureSearch.SDKHowTo
 
             string indexName = configuration["SearchIndexName"];
 
-            SearchServiceClient serviceClient = CreateSearchServiceClient(configuration);
+            //SearchServiceClient serviceClient = CreateSearchServiceClient(configuration);
 
-            Console.WriteLine("{0}", "Deleting index...\n");
-            DeleteIndexIfExists(indexName, serviceClient);
+            //Console.WriteLine("{0}", "Deleting index...\n");
+            //DeleteIndexIfExists(indexName, serviceClient);
 
-            Console.WriteLine("{0}", "Creating index...\n");
-            CreateIndex(indexName, serviceClient);
+            //Console.WriteLine("{0}", "Creating index...\n");
+            //CreateIndex(indexName, serviceClient);
 
-            ISearchIndexClient indexClient = serviceClient.Indexes.GetClient(indexName);
+            //ISearchIndexClient indexClient = serviceClient.Indexes.GetClient(indexName);
 
-            Console.WriteLine("{0}", "Uploading documents...\n");
-            UploadDocuments(indexClient);
+            //Console.WriteLine("{0}", "Uploading documents...\n");
+            //UploadDocuments(indexClient);
 
             ISearchIndexClient indexClientForQueries = CreateSearchIndexClient(indexName, configuration);
 
@@ -105,7 +105,7 @@ namespace AzureSearch.SDKHowTo
                 {
                     HotelId = "1",
                     HotelName = "Secret Point Motel",
-                    Description = "The hotel is ideally located on the main commercial artery of the city in the heart of New York. A few minutes away is Time's Square and the historic centre of the city, as well as other places of interest that make New York one of America's most attractive and cosmopolitan cities.",
+                    Description = "The hotel is ideally located on the main commercial artery of the city in the heart of New York. A few minutes away is Time's Square and the historic centre of the city, as well as other places of interest that make New York one of America's most attractive and cosmopolitan cities. Web site: http://www.alpineskihouse.com",
                     DescriptionFr = "L'hôtel est idéalement situé sur la principale artère commerciale de la ville en plein cœur de New York. A quelques minutes se trouve la place du temps et le centre historique de la ville, ainsi que d'autres lieux d'intérêt qui font de New York l'une des villes les plus attractives et cosmopolites de l'Amérique.",
                     Category = "Boutique",
                     Tags = new[] { "pool", "air conditioning", "concierge" },
@@ -511,11 +511,12 @@ namespace AzureSearch.SDKHowTo
             parameters =
                 new SearchParameters()
                 {
-                    SearchFields = new[] { "HotelName", "Category", "Tags" },
-                    Select = new[] { "HotelName" }
+                    SearchFields = new[] { "HotelName", "Category", "Tags", "Description" },
+                    Select = new[] { "HotelName", "Category", "Tags", "Description" },
+                    HighlightFields = new[] { "HotelName", "Category", "Tags", "Description" },
                 };
 
-            results = indexClient.Documents.Search<Hotel>("economy AND hotel", parameters);
+            results = indexClient.Documents.Search<Hotel>("www.alpineskihouse.com", parameters);
 
             WriteDocuments(results);
 
