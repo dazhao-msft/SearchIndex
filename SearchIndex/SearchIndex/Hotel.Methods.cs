@@ -1,6 +1,5 @@
 ﻿namespace AzureSearch.SDKHowTo
 {
-    using System;
     using System.Text;
 
     public partial class Hotel

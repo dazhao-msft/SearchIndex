@@ -1,7 +1,6 @@
 ﻿namespace AzureSearch.SDKHowTo
 {
     using Newtonsoft.Json;
-    using System;
     using System.Text;
 
     public partial class Address
