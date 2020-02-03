@@ -102,5 +102,21 @@ namespace IndexBuilder
         public string LeadJobTitle { get; set; }
 
         #endregion Lead
+
+        #region User
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("systemuser_internalemailaddress")]
+        public string UserPrimaryEmail { get; set; }
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("systemuser_address1_telephone1")]
+        public string UserMainPhone { get; set; }
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("systemuser_jobtitle")]
+        public string UserJobTitle { get; set; }
+
+        #endregion User
     }
 }
