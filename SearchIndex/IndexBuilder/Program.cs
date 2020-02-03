@@ -1,25 +1,23 @@
 ﻿using Microsoft.Azure.Search;
 using Microsoft.Extensions.Configuration;
+using System.Threading.Tasks;
 using Index = Microsoft.Azure.Search.Models.Index;
 
 namespace IndexBuilder
 {
     public static class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            var builder = new ConfigurationBuilder().AddJsonFile("appsettings.json").AddUserSecrets(typeof(Program).Assembly);
-            var configuration = builder.Build();
+            var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json")
+                                                          .AddUserSecrets(typeof(Program).Assembly)
+                                                          .Build();
 
             var serviceClient = CreateSearchServiceClient(configuration);
+
             var indexName = GetIndexName(configuration);
 
-            CreateOrUpdateIndexDefinition(serviceClient, indexName);
-        }
-
-        private static string GetIndexName(IConfiguration configuration)
-        {
-            return configuration["SearchIndexName"];
+            await ForceCreateNewIndexDefinitionAsync(serviceClient, indexName);
         }
 
         private static SearchServiceClient CreateSearchServiceClient(IConfiguration configuration)
@@ -31,11 +29,16 @@ namespace IndexBuilder
             return serviceClient;
         }
 
-        private static Index CreateOrUpdateIndexDefinition(ISearchServiceClient serviceClient, string indexName)
+        private static string GetIndexName(IConfiguration configuration)
         {
-            if (serviceClient.Indexes.Exists(indexName))
+            return configuration["SearchIndexName"];
+        }
+
+        private static async Task<Index> ForceCreateNewIndexDefinitionAsync(ISearchServiceClient serviceClient, string indexName)
+        {
+            if (await serviceClient.Indexes.ExistsAsync(indexName))
             {
-                serviceClient.Indexes.Delete(indexName);
+                await serviceClient.Indexes.DeleteAsync(indexName);
             }
 
             var definition = new Index()
@@ -44,7 +47,7 @@ namespace IndexBuilder
                 Fields = FieldBuilder.BuildForType<Document>(),
             };
 
-            return serviceClient.Indexes.Create(definition);
+            return await serviceClient.Indexes.CreateAsync(definition);
         }
     }
 }
