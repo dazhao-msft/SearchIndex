@@ -31,14 +31,14 @@ namespace IndexBuilder
         // `[JsonProperty("{CDSEntityName}_{CDSAttributeName}")]`
         //
 
-        #region Account 
+        #region Account
 
         [IsSearchable, IsFilterable, IsFacetable]
         [JsonProperty("account_address1_city")]
         public string AccountAddress1City { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("account_address1_state")]
+        [JsonProperty("account_address1_stateorprovince")]
         public string AccountAddress1State { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
@@ -63,12 +63,44 @@ namespace IndexBuilder
 
         #endregion Account
 
-        #region Opportunity 
+        #region Opportunity
 
         [IsSearchable, IsFilterable, IsFacetable]
         [JsonProperty("opportunity_stepname")]
         public string OpportunityStepName { get; set; }
 
         #endregion Opportunity
+
+        #region Lead
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("lead_subject")]
+        public string LeadSubject { get; set; }
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("lead_companyname")]
+        public string LeadCompanyName { get; set; }
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("lead_address1_city")]
+        public string LeadAddress1City { get; set; }
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("lead_address1_stateorprovince")]
+        public string LeadAddress1State { get; set; }
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("lead_address1_country")]
+        public string LeadAddress1Country { get; set; }
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("lead_telephone1")]
+        public string LeadTelephone1 { get; set; }
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("lead_jobtitle")]
+        public string LeadJobTitle { get; set; }
+
+        #endregion Lead
     }
 }
