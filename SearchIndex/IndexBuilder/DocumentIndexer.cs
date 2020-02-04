@@ -1,12 +1,10 @@
-﻿using IndexModels;
-using Microsoft.Azure.Search;
+﻿using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Document = IndexModels.Document;
 using Index = Microsoft.Azure.Search.Models.Index;
@@ -39,11 +37,11 @@ namespace IndexBuilder
 
             var documents = new List<Document>();
 
-            documents.AddRange(await ReadEntitiesAsDocumentAsync(@"Data\accounts.json", EntityMetadata.Default["account"]));
-            documents.AddRange(await ReadEntitiesAsDocumentAsync(@"Data\contacts.json", EntityMetadata.Default["contact"]));
-            documents.AddRange(await ReadEntitiesAsDocumentAsync(@"Data\leads.json", EntityMetadata.Default["lead"]));
-            documents.AddRange(await ReadEntitiesAsDocumentAsync(@"Data\opportunities.json", EntityMetadata.Default["opportunity"]));
-            documents.AddRange(await ReadEntitiesAsDocumentAsync(@"Data\systemusers.json", EntityMetadata.Default["systemuser"]));
+            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\accounts.json", "account", "accountid"));
+            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\contacts.json", "contact", "contactid"));
+            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\leads.json", "lead", "leadid"));
+            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\opportunities.json", "opportunity", "opportunityid"));
+            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\systemusers.json", "systemuser", "systemuserid"));
 
             //
             // Uploads documents.
@@ -68,17 +66,15 @@ namespace IndexBuilder
             }
         }
 
-        private static async Task<IReadOnlyCollection<Document>> ReadEntitiesAsDocumentAsync(string file, EntityMetadata entityMetadata)
+        private static async Task<IReadOnlyCollection<Document>> ReadEntitiesAsDocumentsAsync(string file, string entityName, string entityIdAttributeName)
         {
-            string contents = await File.ReadAllTextAsync(file);
+            var documents = new List<Document>();
 
-            var entityList = JsonConvert.DeserializeObject<List<dynamic>>(contents);
+            var propertiesToIndex = Document.GetPropertiesToIndex(entityName);
 
-            var propertiesToIndex = GetPropertiesToIndex(entityMetadata.EntityName);
+            var entities = JsonConvert.DeserializeObject<List<dynamic>>(await File.ReadAllTextAsync(file));
 
-            var documentList = new List<Document>();
-
-            foreach (var entity in entityList)
+            foreach (var entity in entities)
             {
                 var document = new Document();
 
@@ -86,10 +82,8 @@ namespace IndexBuilder
                 // Fill in the common fields.
                 //
 
-                document.EntityType = entityMetadata.EntityName;
-                document.EntityId = entity[entityMetadata.EntityIdName];
-                document.EntityPrimaryField = entity[entityMetadata.EntityPrimaryFieldName];
-                document.EntityAsJson = entity.ToString();
+                document.EntityId = entity[entityIdAttributeName];
+                document.EntityName = entityName;
 
                 //
                 // Fill in the fields to be indexed.
@@ -97,56 +91,17 @@ namespace IndexBuilder
 
                 foreach (var propertyToIndex in propertiesToIndex)
                 {
-                    propertyToIndex.PropertyInfo.SetValue(document, entity[propertyToIndex.AttributeName].ToString());
+                    propertyToIndex.PropertyInfo.SetValue(document, entity[propertyToIndex.CdsAttributeName].ToString());
                 }
 
                 //
                 // Add the document to list.
                 //
 
-                documentList.Add(document);
+                documents.Add(document);
             }
 
-            return documentList;
-        }
-
-        private static IReadOnlyList<(PropertyInfo PropertyInfo, string AttributeName)> GetPropertiesToIndex(string entityName)
-        {
-            var properties = typeof(Document).GetProperties();
-
-            var result = new List<(PropertyInfo, string)>();
-
-            foreach (var property in properties)
-            {
-                if (TryGetAttributeName(property, entityName, out string attributeName))
-                {
-                    result.Add((property, attributeName));
-                }
-            }
-
-            return result;
-        }
-
-        private static bool TryGetAttributeName(PropertyInfo property, string entityName, out string attributeName)
-        {
-            attributeName = null;
-
-            string jsonPropertyName = property.GetCustomAttribute<JsonPropertyAttribute>()?.PropertyName;
-
-            if (string.IsNullOrEmpty(jsonPropertyName))
-            {
-                return false;
-            }
-
-            string entityNamePrefix = $"{entityName}__";
-
-            if (!jsonPropertyName.StartsWith(entityNamePrefix, StringComparison.Ordinal))
-            {
-                return false;
-            }
-
-            attributeName = jsonPropertyName.Substring(entityNamePrefix.Length);
-            return true;
+            return documents;
         }
     }
 }

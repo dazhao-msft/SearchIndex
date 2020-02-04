@@ -4,34 +4,33 @@ using System.ComponentModel.DataAnnotations;
 
 namespace IndexModels
 {
-    public class Document
+    public partial class Document
     {
         [Key]
         [IsFilterable]
-        [JsonProperty("entity_id")]
+        [JsonProperty(EntityIdFieldName)]
         public string EntityId { get; set; }
 
         [IsFilterable, IsFacetable]
-        [JsonProperty("entity_type")]
-        public string EntityType { get; set; }
-
-        [IsSearchable, IsFilterable, IsFacetable]
-        [JsonProperty("entity_primary_field")]
-        public string EntityPrimaryField { get; set; }
-
-        [JsonProperty("entity_as_json")]
-        public string EntityAsJson { get; set; }
+        [JsonProperty(EntityNameFieldName)]
+        public string EntityName { get; set; }
 
         //
         // The following fields are indexed for NLU. They are hardcoded in the prototype.
         // In production, a better design would be to define a collection of generic index fields,
         // and use a metadata mapping table to dynamically map the selected fields to the index.
         //
-        // CDS entity names plus attribute names are defined as the property name in the following properties:
+        // CDS entity names plus attribute names are defined as the Azure Search field names:
+        //
         // `[JsonProperty("{CDSEntityName}__{CDSAttributeName}")]`
         //
 
         #region Account
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("account__name")]
+        [PrimaryField]
+        public string AccountName { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
         [JsonProperty("account__address1_city")]
@@ -66,12 +65,22 @@ namespace IndexModels
         #region Opportunity
 
         [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("opportunity__name")]
+        [PrimaryField]
+        public string OpportunityName { get; set; }
+
+        [IsSearchable, IsFilterable, IsFacetable]
         [JsonProperty("opportunity__stepname")]
         public string OpportunityPipelinePhase { get; set; }
 
         #endregion Opportunity
 
         #region Lead
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("lead__fullname")]
+        [PrimaryField]
+        public string LeadFullName { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
         [JsonProperty("lead__subject")]
@@ -106,6 +115,11 @@ namespace IndexModels
         #region Contact
 
         [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("contact__fullname")]
+        [PrimaryField]
+        public string ContactFullName { get; set; }
+
+        [IsSearchable, IsFilterable, IsFacetable]
         [JsonProperty("contact__jobtitle")]
         public string ContactJobTitle { get; set; }
 
@@ -136,6 +150,11 @@ namespace IndexModels
         #endregion Contact
 
         #region User
+
+        [IsSearchable, IsFilterable, IsFacetable]
+        [JsonProperty("user__fullname")]
+        [PrimaryField]
+        public string UserFullName { get; set; }
 
         [IsSearchable, IsFilterable, IsFacetable]
         [JsonProperty("systemuser__internalemailaddress")]

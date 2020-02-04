@@ -1,14 +1,11 @@
-﻿using IndexModels;
-using IndexServer.Models;
+﻿using IndexServer.Models;
 using IndexServer.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Document = IndexModels.Document;
 
@@ -18,14 +15,6 @@ namespace IndexServer.Controllers
     [ApiController]
     public class DataIndexServingController : ControllerBase
     {
-        private static readonly ISet<string> TokensToRemove = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "of",
-            "is",
-        };
-
-        private static readonly IList<string> SearchableFields = GetSearchableFields();
-
         private readonly ISearchIndexClientProvider _searchIndexClientProvider;
 
         public DataIndexServingController(ISearchIndexClientProvider searchIndexClientProvider)
@@ -45,9 +34,8 @@ namespace IndexServer.Controllers
 
             var searchParameters = new SearchParameters()
             {
-                SearchFields = SearchableFields,
-                Select = SearchableFields.Concat(new[] { "entity_id", "entity_type" }).ToList(),
-                HighlightFields = SearchableFields,
+                SearchFields = Document.SearchableFields,
+                HighlightFields = Document.SearchableFields,
             };
 
             var matchedTerms = new List<MatchedTerm>();
@@ -67,21 +55,23 @@ namespace IndexServer.Controllers
 
                     foreach (var searchResult in searchResults)
                     {
+                        string cdsEntityName = searchResult.Document[Document.EntityNameFieldName].ToString();
+
                         foreach (var highlight in searchResult.Highlights)
                         {
-                            string entityName = searchResult.Document["entity_type"].ToString();
-                            string attributeName = ResolveAttributeName(entityName, highlight.Key);
-
-                            matchedTerm.TermBindings.Add(new TermBinding()
+                            if (Document.TryResolveCdsAttributeName(highlight.Key, cdsEntityName, out string cdsAttributeName))
                             {
-                                BindingType = BindingType.InstanceValue,
-                                SearchScope = new SearchScope()
+                                matchedTerm.TermBindings.Add(new TermBinding()
                                 {
-                                    Table = entityName,
-                                    Column = attributeName,
-                                },
-                                Value = searchResult.Document[highlight.Key].ToString(),
-                            });
+                                    BindingType = BindingType.InstanceValue,
+                                    SearchScope = new SearchScope()
+                                    {
+                                        Table = cdsEntityName,
+                                        Column = cdsAttributeName,
+                                    },
+                                    Value = searchResult.Document[highlight.Key].ToString(),
+                                });
+                            }
                         }
                     }
 
@@ -100,30 +90,13 @@ namespace IndexServer.Controllers
             return Ok(Enumerable.Empty<MatchedTerm>());
         }
 
-        private static IList<string> GetSearchableFields()
+        #region Tokenizer
+
+        private static readonly ISet<string> TokensToRemove = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            return typeof(Document).GetProperties()
-                                   .Where(p => p.GetCustomAttribute<IsSearchableAttribute>() != null)
-                                   .Select(p => p.GetCustomAttribute<JsonPropertyAttribute>()?.PropertyName)
-                                   .ToList();
-        }
-
-        private static string ResolveAttributeName(string entityName, string fieldName)
-        {
-            if (fieldName == "entity_primary_field")
-            {
-                return EntityMetadata.Default[entityName].EntityPrimaryFieldName;
-            }
-
-            string entityNamePrefix = $"{entityName}__";
-
-            if (fieldName.StartsWith(entityNamePrefix, StringComparison.Ordinal))
-            {
-                return fieldName.Substring(entityNamePrefix.Length);
-            }
-
-            throw new InvalidOperationException($"invalid {nameof(fieldName)}");
-        }
+            "of",
+            "is",
+        };
 
         private static IReadOnlyCollection<string> Tokenize(string query)
         {
@@ -131,5 +104,7 @@ namespace IndexServer.Controllers
 
             return tokens.Where(token => !TokensToRemove.Contains(token)).Distinct().ToList();
         }
+
+        #endregion Tokenizer
     }
 }
