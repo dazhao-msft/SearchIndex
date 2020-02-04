@@ -72,6 +72,8 @@ namespace IndexServer.Controllers
                         {
                             if (Document.TryResolveCdsAttributeName(highlight.Key, cdsEntityName, out string cdsAttributeName))
                             {
+                                string value = searchResult.Document[highlight.Key].ToString();
+
                                 matchedTerm.TermBindings.Add(new TermBinding()
                                 {
                                     BindingType = BindingType.InstanceValue,
@@ -80,7 +82,9 @@ namespace IndexServer.Controllers
                                         Table = cdsEntityName,
                                         Column = cdsAttributeName,
                                     },
-                                    Value = searchResult.Document[highlight.Key].ToString(),
+                                    Value = value,
+                                    IsExactlyMatch = StringComparer.OrdinalIgnoreCase.Equals(token, value),
+                                    IsSynonymMatch = false,
                                 });
                             }
                         }
