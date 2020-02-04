@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Document = IndexModels.Document;
 using Index = Microsoft.Azure.Search.Models.Index;
 
 namespace IndexBuilder

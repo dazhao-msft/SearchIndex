@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.29709.97
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SearchIndex", "SearchIndex\SearchIndex.csproj", "{55F92A20-C1FF-4709-8D95-4FA5D56B0FC5}"
+VisualStudioVersion = 16.0.29728.190
+MinimumVisualStudioVersion = 15.0.26124.0
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndexBuilder", "IndexBuilder\IndexBuilder.csproj", "{AC6F8055-06F1-49C6-AC18-56734ABB01BB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndexBuilder", "IndexBuilder\IndexBuilder.csproj", "{9CFA086D-C723-419A-992F-9AEB9E8D953B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndexModels", "IndexModels\IndexModels.csproj", "{BB09FDCF-672F-42F5-9CFF-202CB113010E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndexServer", "IndexServer\IndexServer.csproj", "{0F299762-E372-400E-A982-2DEBC154B205}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndexServer", "IndexServer\IndexServer.csproj", "{B029E8DF-4954-4CDA-8425-495EC6153F67}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,23 +15,23 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{55F92A20-C1FF-4709-8D95-4FA5D56B0FC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{55F92A20-C1FF-4709-8D95-4FA5D56B0FC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{55F92A20-C1FF-4709-8D95-4FA5D56B0FC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{55F92A20-C1FF-4709-8D95-4FA5D56B0FC5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9CFA086D-C723-419A-992F-9AEB9E8D953B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9CFA086D-C723-419A-992F-9AEB9E8D953B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9CFA086D-C723-419A-992F-9AEB9E8D953B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9CFA086D-C723-419A-992F-9AEB9E8D953B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0F299762-E372-400E-A982-2DEBC154B205}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0F299762-E372-400E-A982-2DEBC154B205}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0F299762-E372-400E-A982-2DEBC154B205}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0F299762-E372-400E-A982-2DEBC154B205}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC6F8055-06F1-49C6-AC18-56734ABB01BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC6F8055-06F1-49C6-AC18-56734ABB01BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC6F8055-06F1-49C6-AC18-56734ABB01BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC6F8055-06F1-49C6-AC18-56734ABB01BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB09FDCF-672F-42F5-9CFF-202CB113010E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB09FDCF-672F-42F5-9CFF-202CB113010E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB09FDCF-672F-42F5-9CFF-202CB113010E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB09FDCF-672F-42F5-9CFF-202CB113010E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B029E8DF-4954-4CDA-8425-495EC6153F67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B029E8DF-4954-4CDA-8425-495EC6153F67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B029E8DF-4954-4CDA-8425-495EC6153F67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B029E8DF-4954-4CDA-8425-495EC6153F67}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {D81D9512-4718-4215-A03B-92DCCA518387}
+		SolutionGuid = {7EC5AD48-C823-4D93-8550-6F7BCDFA43D7}
 	EndGlobalSection
 EndGlobal

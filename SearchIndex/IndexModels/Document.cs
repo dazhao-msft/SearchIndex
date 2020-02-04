@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
-namespace IndexBuilder
+namespace IndexModels
 {
     public class Document
     {
