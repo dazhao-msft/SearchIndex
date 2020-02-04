@@ -1,8 +1,6 @@
-﻿using Newtonsoft.Json.Converters;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Serialization;
 
 namespace IndexServer.Models
 {
@@ -106,7 +104,6 @@ namespace IndexServer.Models
         }
     }
 
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum BindingType
     {
         Table,

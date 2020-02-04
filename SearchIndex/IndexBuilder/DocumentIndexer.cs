@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.Search;
+﻿using IndexModels;
+using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 using Newtonsoft.Json;
 using System;
@@ -38,11 +39,11 @@ namespace IndexBuilder
 
             var documents = new List<Document>();
 
-            documents.AddRange(await ReadEntitiesAsDocumentAsync(@"Data\accounts.json", "account", "accountid", "name"));
-            documents.AddRange(await ReadEntitiesAsDocumentAsync(@"Data\contacts.json", "contact", "contactid", "fullname"));
-            documents.AddRange(await ReadEntitiesAsDocumentAsync(@"Data\leads.json", "lead", "leadid", "fullname"));
-            documents.AddRange(await ReadEntitiesAsDocumentAsync(@"Data\opportunities.json", "opportunity", "opportunityid", "name"));
-            documents.AddRange(await ReadEntitiesAsDocumentAsync(@"Data\systemusers.json", "systemuser", "systemuserid", "fullname"));
+            documents.AddRange(await ReadEntitiesAsDocumentAsync(@"Data\accounts.json", EntityMetadata.Default["account"]));
+            documents.AddRange(await ReadEntitiesAsDocumentAsync(@"Data\contacts.json", EntityMetadata.Default["contact"]));
+            documents.AddRange(await ReadEntitiesAsDocumentAsync(@"Data\leads.json", EntityMetadata.Default["lead"]));
+            documents.AddRange(await ReadEntitiesAsDocumentAsync(@"Data\opportunities.json", EntityMetadata.Default["opportunity"]));
+            documents.AddRange(await ReadEntitiesAsDocumentAsync(@"Data\systemusers.json", EntityMetadata.Default["systemuser"]));
 
             //
             // Uploads documents.
@@ -67,13 +68,13 @@ namespace IndexBuilder
             }
         }
 
-        private static async Task<IReadOnlyCollection<Document>> ReadEntitiesAsDocumentAsync(string file, string entityName, string idName, string primaryFieldName)
+        private static async Task<IReadOnlyCollection<Document>> ReadEntitiesAsDocumentAsync(string file, EntityMetadata entityMetadata)
         {
             string contents = await File.ReadAllTextAsync(file);
 
             var entityList = JsonConvert.DeserializeObject<List<dynamic>>(contents);
 
-            var propertiesToIndex = GetPropertiesToIndex(entityName);
+            var propertiesToIndex = GetPropertiesToIndex(entityMetadata.EntityName);
 
             var documentList = new List<Document>();
 
@@ -85,9 +86,9 @@ namespace IndexBuilder
                 // Fill in the common fields.
                 //
 
-                document.EntityType = entityName;
-                document.EntityId = entity[idName];
-                document.EntityPrimaryField = entity[primaryFieldName];
+                document.EntityType = entityMetadata.EntityName;
+                document.EntityId = entity[entityMetadata.EntityIdName];
+                document.EntityPrimaryField = entity[entityMetadata.EntityPrimaryFieldName];
                 document.EntityAsJson = entity.ToString();
 
                 //

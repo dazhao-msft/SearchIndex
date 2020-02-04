@@ -1,4 +1,5 @@
-﻿using IndexServer.Models;
+﻿using IndexModels;
+using IndexServer.Models;
 using IndexServer.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search;
@@ -33,22 +34,62 @@ namespace IndexServer.Controllers
         }
 
         [HttpGet("Test")]
-        public async Task<ActionResult<Document>> TestAsync([FromQuery] string query)
+        public async Task<ActionResult<IReadOnlyCollection<MatchedTerm>>> TestAsync([FromQuery] string query)
         {
-            query = QueryRewrite(query);
+            if (string.IsNullOrEmpty(query))
+            {
+                return Ok();
+            }
+
+            var searchIndexClient = _searchIndexClientProvider.CreateSearchIndexClient();
 
             var searchParameters = new SearchParameters()
             {
                 SearchFields = SearchableFields,
-                Select = SearchableFields,
+                Select = SearchableFields.Concat(new[] { "entity_id", "entity_type" }).ToList(),
                 HighlightFields = SearchableFields,
             };
 
-            var searchIndexClient = _searchIndexClientProvider.CreateSearchIndexClient();
+            var matchedTerms = new List<MatchedTerm>();
 
-            var result = await searchIndexClient.Documents.SearchAsync<Document>(query, searchParameters);
+            foreach (string token in Tokenize(query))
+            {
+                var searchResults = (await searchIndexClient.Documents.SearchAsync(token, searchParameters)).Results;
 
-            return Ok(result);
+                if (searchResults.Count > 0)
+                {
+                    var matchedTerm = new MatchedTerm();
+
+                    matchedTerm.Text = token;
+                    matchedTerm.StartIndex = query.IndexOf(token);
+                    matchedTerm.Length = token.Length;
+                    matchedTerm.TermBindings = new HashSet<TermBinding>();
+
+                    foreach (var searchResult in searchResults)
+                    {
+                        foreach (var highlight in searchResult.Highlights)
+                        {
+                            string entityName = searchResult.Document["entity_type"].ToString();
+                            string attributeName = ResolveAttributeName(entityName, highlight.Key);
+
+                            matchedTerm.TermBindings.Add(new TermBinding()
+                            {
+                                BindingType = BindingType.InstanceValue,
+                                SearchScope = new SearchScope()
+                                {
+                                    Table = entityName,
+                                    Column = attributeName,
+                                },
+                                Value = searchResult.Document[highlight.Key].ToString(),
+                            });
+                        }
+                    }
+
+                    matchedTerms.Add(matchedTerm);
+                }
+            }
+
+            return matchedTerms;
         }
 
         [HttpPost("Search")]
@@ -62,17 +103,33 @@ namespace IndexServer.Controllers
         private static IList<string> GetSearchableFields()
         {
             return typeof(Document).GetProperties()
-                                  .Where(p => p.GetCustomAttribute<IsSearchableAttribute>() != null)
-                                  .Select(p => p.GetCustomAttribute<JsonPropertyAttribute>()?.PropertyName)
-                                  .ToList();
+                                   .Where(p => p.GetCustomAttribute<IsSearchableAttribute>() != null)
+                                   .Select(p => p.GetCustomAttribute<JsonPropertyAttribute>()?.PropertyName)
+                                   .ToList();
         }
 
-        private static string QueryRewrite(string query)
+        private static string ResolveAttributeName(string entityName, string fieldName)
         {
-            // Super naive QR
+            if (fieldName == "entity_primary_field")
+            {
+                return EntityMetadata.Default[entityName].EntityPrimaryFieldName;
+            }
+
+            string entityNamePrefix = $"{entityName}__";
+
+            if (fieldName.StartsWith(entityNamePrefix, StringComparison.Ordinal))
+            {
+                return fieldName.Substring(entityNamePrefix.Length);
+            }
+
+            throw new InvalidOperationException($"invalid {nameof(fieldName)}");
+        }
+
+        private static IReadOnlyCollection<string> Tokenize(string query)
+        {
             string[] tokens = query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-            return string.Concat(tokens.Where(token => !TokensToRemove.Contains(token)));
+            return tokens.Where(token => !TokensToRemove.Contains(token)).Distinct().ToList();
         }
     }
 }
