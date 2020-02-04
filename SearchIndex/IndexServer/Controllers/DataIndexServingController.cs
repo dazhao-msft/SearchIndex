@@ -25,9 +25,20 @@ namespace IndexServer.Controllers
         [HttpGet("Test")]
         public async Task<ActionResult<IReadOnlyCollection<MatchedTerm>>> TestAsync([FromQuery] string query)
         {
+            return Ok(await SearchCoreAsync(query));
+        }
+
+        [HttpPost("Search")]
+        public async Task<ActionResult<IEnumerable<MatchedTerm>>> SearchAsync([FromBody]DataIndexSearchRequest request)
+        {
+            return Ok(await SearchCoreAsync(request.Query));
+        }
+
+        private async Task<IReadOnlyCollection<MatchedTerm>> SearchCoreAsync(string query)
+        {
             if (string.IsNullOrEmpty(query))
             {
-                return Ok();
+                return Array.Empty<MatchedTerm>();
             }
 
             var searchIndexClient = _searchIndexClientProvider.CreateSearchIndexClient();
@@ -80,14 +91,6 @@ namespace IndexServer.Controllers
             }
 
             return matchedTerms;
-        }
-
-        [HttpPost("Search")]
-        public async Task<ActionResult<IEnumerable<MatchedTerm>>> SearchAsync([FromBody]DataIndexSearchRequest request)
-        {
-            await Task.Yield();
-
-            return Ok(Enumerable.Empty<MatchedTerm>());
         }
 
         #region Tokenizer
