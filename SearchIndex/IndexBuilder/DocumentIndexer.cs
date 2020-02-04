@@ -37,11 +37,11 @@ namespace IndexBuilder
 
             var documents = new List<Document>();
 
-            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\accounts.json", "account", "accountid"));
-            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\contacts.json", "contact", "contactid"));
-            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\leads.json", "lead", "leadid"));
-            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\opportunities.json", "opportunity", "opportunityid"));
-            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\systemusers.json", "systemuser", "systemuserid"));
+            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\accounts.json", Document.AccountEntityName, Document.AccountEntityIdName));
+            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\contacts.json", Document.ContactEntityName, Document.ContactEntityIdName));
+            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\leads.json", Document.LeadEntityName, Document.LeadEntityIdName));
+            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\opportunities.json", Document.OpportunityEntityName, Document.OpportunityEntityIdName));
+            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\systemusers.json", Document.UserEntityName, Document.UserEntityIdName));
 
             //
             // Uploads documents.
