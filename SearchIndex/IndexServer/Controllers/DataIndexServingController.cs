@@ -53,16 +53,17 @@ namespace IndexServer.Controllers
 
             foreach (string token in Tokenize(query))
             {
-                var searchResults = (await searchIndexClient.Documents.SearchAsync(token, searchParameters)).Results;
+                var searchResults = (await searchIndexClient.Documents.SearchAsync(token, searchParameters)).Results.Where(p => p.Score > 0.5f).ToList();
 
                 if (searchResults.Count > 0)
                 {
-                    var matchedTerm = new MatchedTerm();
-
-                    matchedTerm.Text = token;
-                    matchedTerm.StartIndex = query.IndexOf(token);
-                    matchedTerm.Length = token.Length;
-                    matchedTerm.TermBindings = new HashSet<TermBinding>();
+                    var matchedTerm = new MatchedTerm
+                    {
+                        Text = token,
+                        StartIndex = query.IndexOf(token),
+                        Length = token.Length,
+                        TermBindings = new HashSet<TermBinding>(),
+                    };
 
                     foreach (var searchResult in searchResults)
                     {
