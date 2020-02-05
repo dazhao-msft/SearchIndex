@@ -5,7 +5,6 @@ using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Document = IndexModels.Document;
 
@@ -15,6 +14,9 @@ namespace IndexServer.Controllers
     [ApiController]
     public class DataIndexServingController : ControllerBase
     {
+        private const string HighlightPreTag = "<em>";
+        private const string HighlightPostTag = "</em>";
+
         private readonly ISearchIndexClientProvider _searchIndexClientProvider;
 
         public DataIndexServingController(ISearchIndexClientProvider searchIndexClientProvider)
@@ -45,35 +47,42 @@ namespace IndexServer.Controllers
 
             var searchParameters = new SearchParameters()
             {
+                SearchMode = SearchMode.Any,
                 SearchFields = Document.SearchableFields,
                 HighlightFields = Document.SearchableFields,
+                HighlightPreTag = HighlightPreTag,
+                HighlightPostTag = HighlightPostTag,
             };
 
             var matchedTerms = new List<MatchedTerm>();
 
-            foreach (string token in Tokenize(query))
+            var searchResults = (await searchIndexClient.Documents.SearchAsync(query, searchParameters)).Results;
+
+            if (searchResults.Count > 0)
             {
-                var searchResults = (await searchIndexClient.Documents.SearchAsync(token, searchParameters)).Results.Where(p => p.Score > 0.5f).ToList();
-
-                if (searchResults.Count > 0)
+                foreach (var searchResult in searchResults)
                 {
-                    var matchedTerm = new MatchedTerm
-                    {
-                        Text = token,
-                        StartIndex = query.IndexOf(token),
-                        Length = token.Length,
-                        TermBindings = new HashSet<TermBinding>(),
-                    };
+                    string cdsEntityName = searchResult.Document[Document.EntityNameFieldName].ToString();
 
-                    foreach (var searchResult in searchResults)
+                    foreach (var highlight in searchResult.Highlights)
                     {
-                        string cdsEntityName = searchResult.Document[Document.EntityNameFieldName].ToString();
-
-                        foreach (var highlight in searchResult.Highlights)
+                        if (Document.TryResolveCdsAttributeName(highlight.Key, cdsEntityName, out string cdsAttributeName))
                         {
-                            if (Document.TryResolveCdsAttributeName(highlight.Key, cdsEntityName, out string cdsAttributeName))
+                            string fieldValue = searchResult.Document[highlight.Key].ToString();
+
+                            foreach (string fragment in highlight.Value)
                             {
-                                string value = searchResult.Document[highlight.Key].ToString();
+                                int startIndex = fragment.IndexOf(HighlightPreTag, StringComparison.Ordinal) + HighlightPreTag.Length;
+                                int length = fragment.LastIndexOf(HighlightPostTag, StringComparison.Ordinal) - startIndex;
+                                string matchedText = fragment.Substring(startIndex, length).Replace(HighlightPreTag, null).Replace(HighlightPostTag, null);
+
+                                var matchedTerm = new MatchedTerm
+                                {
+                                    Text = matchedText,
+                                    StartIndex = query.IndexOf(matchedText, StringComparison.OrdinalIgnoreCase),
+                                    Length = matchedText.Length,
+                                    TermBindings = new HashSet<TermBinding>(),
+                                };
 
                                 matchedTerm.TermBindings.Add(new TermBinding()
                                 {
@@ -83,36 +92,19 @@ namespace IndexServer.Controllers
                                         Table = cdsEntityName,
                                         Column = cdsAttributeName,
                                     },
-                                    Value = value,
-                                    IsExactlyMatch = StringComparer.OrdinalIgnoreCase.Equals(token, value),
+                                    Value = fieldValue,
+                                    IsExactlyMatch = StringComparer.OrdinalIgnoreCase.Equals(fieldValue, matchedText),
                                     IsSynonymMatch = false,
                                 });
+
+                                matchedTerms.Add(matchedTerm);
                             }
                         }
                     }
-
-                    matchedTerms.Add(matchedTerm);
                 }
             }
 
             return matchedTerms;
         }
-
-        #region Tokenizer
-
-        private static readonly ISet<string> TokensToRemove = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "of",
-            "is",
-        };
-
-        private static IReadOnlyCollection<string> Tokenize(string query)
-        {
-            string[] tokens = query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-            return tokens.Where(token => !TokensToRemove.Contains(token)).Distinct().ToList();
-        }
-
-        #endregion Tokenizer
     }
 }
