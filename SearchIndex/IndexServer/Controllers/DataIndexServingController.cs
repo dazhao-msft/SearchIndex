@@ -3,6 +3,7 @@ using IndexServer.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -18,10 +19,12 @@ namespace IndexServer.Controllers
         private const string HighlightPostTag = "</em>";
 
         private readonly ISearchIndexClientProvider _searchIndexClientProvider;
+        private readonly ILogger<DataIndexServingController> _logger;
 
-        public DataIndexServingController(ISearchIndexClientProvider searchIndexClientProvider)
+        public DataIndexServingController(ISearchIndexClientProvider searchIndexClientProvider, ILogger<DataIndexServingController> logger)
         {
             _searchIndexClientProvider = searchIndexClientProvider;
+            _logger = logger;
         }
 
         [HttpGet("Test")]
@@ -38,6 +41,8 @@ namespace IndexServer.Controllers
 
         private async Task<IReadOnlyCollection<MatchedTerm>> SearchCoreAsync(string query)
         {
+            _logger.LogInformation($"Trace ID: {HttpContext.TraceIdentifier} | Query: {query}");
+
             if (string.IsNullOrEmpty(query))
             {
                 return Array.Empty<MatchedTerm>();
@@ -103,6 +108,8 @@ namespace IndexServer.Controllers
                     }
                 }
             }
+
+            _logger.LogInformation($"Trace ID: {HttpContext.TraceIdentifier} | Count of matched terms: {matchedTerms.Count}");
 
             return matchedTerms;
         }
