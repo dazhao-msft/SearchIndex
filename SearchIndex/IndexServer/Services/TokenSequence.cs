@@ -12,41 +12,11 @@ namespace IndexServer.Services
         private readonly string _value;
         private readonly Token[] _tokens;
 
-        public TokenSequence(string value)
+        public TokenSequence(string value, ITokenizer tokenizer)
         {
             _value = value ?? throw new ArgumentNullException(nameof(value));
 
-            var valueAsSpan = value.AsSpan();
-
-            var tokens = new List<Token>();
-
-            int firstOffset = 0;
-
-            while (true)
-            {
-                while (firstOffset < valueAsSpan.Length && valueAsSpan[firstOffset] == ' ')
-                {
-                    firstOffset++;
-                }
-
-                if (firstOffset == valueAsSpan.Length)
-                {
-                    break;
-                }
-
-                int secondOffset = firstOffset + 1;
-
-                while (secondOffset < valueAsSpan.Length && valueAsSpan[secondOffset] != ' ')
-                {
-                    secondOffset++;
-                }
-
-                tokens.Add(new Token(valueAsSpan.Slice(firstOffset, secondOffset - firstOffset).ToString(), firstOffset));
-
-                firstOffset = secondOffset;
-            }
-
-            _tokens = tokens.ToArray();
+            _tokens = tokenizer?.Tokenize(value).Select(p => new Token(p.Item1, p.Item2)).ToArray() ?? throw new ArgumentNullException(nameof(tokenizer));
         }
 
         public string AsValue() => _value;

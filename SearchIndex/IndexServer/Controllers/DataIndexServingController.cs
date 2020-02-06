@@ -65,7 +65,7 @@ namespace IndexServer.Controllers
 
             if (searchResults.Count > 0)
             {
-                var queryTokenSequence = new TokenSequence(query);
+                var queryTokenSequence = new TokenSequence(query, new DefaultTokenizer());
 
                 foreach (var searchResult in searchResults)
                 {
@@ -86,9 +86,14 @@ namespace IndexServer.Controllers
 
                             foreach (string fragment in highlight.Value)
                             {
-                                var fragmentTokenSequence = new TokenSequence(fragment);
+                                var fragmentTokenSequence = new TokenSequence(fragment, new DefaultTokenizer());
 
                                 string matchedText = queryTokenSequence.FindLcs(fragmentTokenSequence, StringComparer.OrdinalIgnoreCase);
+
+                                if (string.IsNullOrEmpty(matchedText))
+                                {
+                                    continue;
+                                }
 
                                 var matchedTerm = new MatchedTerm
                                 {
