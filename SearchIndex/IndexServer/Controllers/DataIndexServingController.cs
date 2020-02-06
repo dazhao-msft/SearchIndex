@@ -65,7 +65,7 @@ namespace IndexServer.Controllers
 
             if (searchResults.Count > 0)
             {
-                var queryTokens = query.ToTokenArray();
+                var queryTokenSequence = new TokenSequence(query);
 
                 foreach (var searchResult in searchResults)
                 {
@@ -86,22 +86,14 @@ namespace IndexServer.Controllers
 
                             foreach (string fragment in highlight.Value)
                             {
-                                var fragmentTokens = fragment.ToTokenArray();
+                                var fragmentTokenSequence = new TokenSequence(fragment);
 
-                                var lcsTokens = TokenUtilities.FindLcs(queryTokens, fragmentTokens, TokenValueEqualityComparer.OrdinalIgnoreCase).ToArray();
-
-                                if (lcsTokens.Length == 0)
-                                {
-                                    continue;
-                                }
-
-                                string matchedText = query.Substring(lcsTokens[0].Offset, lcsTokens[^1].Offset + lcsTokens[^1].Value.Length - lcsTokens[0].Offset);
-                                int startIndex = lcsTokens[0].Offset;
+                                string matchedText = queryTokenSequence.FindLcs(fragmentTokenSequence, StringComparer.OrdinalIgnoreCase);
 
                                 var matchedTerm = new MatchedTerm
                                 {
                                     Text = matchedText,
-                                    StartIndex = startIndex,
+                                    StartIndex = query.IndexOf(matchedText, StringComparison.OrdinalIgnoreCase),
                                     Length = matchedText.Length,
                                     TermBindings = new HashSet<TermBinding>(),
                                 };
