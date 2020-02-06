@@ -61,6 +61,8 @@ namespace IndexServer.Controllers
 
             var matchedTerms = new List<MatchedTerm>();
 
+            query = query.TrimEnd(new[] { ' ', ',', '.', '?', '!' });
+
             var searchResults = (await searchIndexClient.Documents.SearchAsync(query, searchParameters)).Results;
 
             if (searchResults.Count > 0)

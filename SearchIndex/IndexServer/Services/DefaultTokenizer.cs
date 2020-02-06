@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace IndexServer.Services
 {
     public sealed class DefaultTokenizer : ITokenizer
     {
-        private static readonly IReadOnlyList<char> Separators = new[] { ' ', '.', ',', '?', '!', '"', };
-
         public IEnumerable<(string, int)> Tokenize(string value)
         {
             if (value == null)
@@ -21,7 +18,7 @@ namespace IndexServer.Services
 
             while (true)
             {
-                while (leftOffset < valueAsMemory.Length && Separators.Any(p => p == valueAsMemory.Span[leftOffset]))
+                while (leftOffset < valueAsMemory.Length && valueAsMemory.Span[leftOffset] == ' ')
                 {
                     leftOffset++;
                 }
@@ -33,7 +30,7 @@ namespace IndexServer.Services
 
                 int rightOffset = leftOffset + 1;
 
-                while (rightOffset < valueAsMemory.Length && !Separators.Any(p => p == valueAsMemory.Span[rightOffset]))
+                while (rightOffset < valueAsMemory.Length && valueAsMemory.Span[rightOffset] != ' ')
                 {
                     rightOffset++;
                 }
