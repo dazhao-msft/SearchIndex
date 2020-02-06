@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 
-namespace IndexServer.Services
+namespace IndexServer.Tokens
 {
     public interface ITokenizer
     {
         /// <summary>
-        /// Tokenizes the given string to return a sequence of the pairs of token and its offset to the original string.
+        /// Tokenizes the given string and returns a sequence of (token, offset) pairs.
         /// </summary>
         IEnumerable<(string, int)> Tokenize(string value);
     }

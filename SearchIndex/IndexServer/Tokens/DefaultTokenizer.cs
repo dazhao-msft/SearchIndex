@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace IndexServer.Services
+namespace IndexServer.Tokens
 {
+    /// <summary>
+    /// Splits the given string into tokens using whitespace as separator.
+    /// </summary>
     public sealed class DefaultTokenizer : ITokenizer
     {
         public IEnumerable<(string, int)> Tokenize(string value)

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace IndexServer.Services
+namespace IndexServer.Tokens
 {
     /// <summary>
-    /// Splits the given string to an array of tokens with whitespace as separator.
+    /// Represents the given string as an array of tokens.
     /// </summary>
     public sealed class TokenSequence
     {
@@ -25,7 +25,7 @@ namespace IndexServer.Services
 
         public string FindLcs(TokenSequence other, StringComparer valueComparer)
         {
-            var lcsTokens = LcsAlgorithm.FindLcs(_tokens, other._tokens, new TokenValueEqualityComparer(valueComparer));
+            var lcsTokens = TokenAlgorithm.FindLcs(_tokens, other._tokens, new TokenValueEqualityComparer(valueComparer));
 
             if (lcsTokens.Length == 0)
             {

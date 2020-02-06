@@ -1,5 +1,6 @@
 ﻿using IndexServer.Models;
 using IndexServer.Services;
+using IndexServer.Tokens;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;

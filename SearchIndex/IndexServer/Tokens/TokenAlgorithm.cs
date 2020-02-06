@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace IndexServer.Services
+namespace IndexServer.Tokens
 {
-    public static class LcsAlgorithm
+    public static class TokenAlgorithm
     {
         /// <summary>
         /// Finds the longest common and consecutive subsequence between the two given sequences.
