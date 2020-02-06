@@ -37,6 +37,7 @@ namespace IndexBuilder
 
             var documents = new List<Document>();
 
+            documents.AddRange(Document.ReadMetadataAsDocuments());
             documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\accounts.json", Document.AccountEntityName, Document.AccountEntityIdName));
             documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\contacts.json", Document.ContactEntityName, Document.ContactEntityIdName));
             documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\leads.json", Document.LeadEntityName, Document.LeadEntityIdName));

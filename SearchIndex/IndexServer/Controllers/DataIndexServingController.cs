@@ -67,42 +67,95 @@ namespace IndexServer.Controllers
             {
                 foreach (var searchResult in searchResults)
                 {
-                    string cdsEntityName = searchResult.Document[Document.EntityNameFieldName].ToString();
+                    string entityName = searchResult.Document[Document.EntityNameFieldName].ToString();
 
-                    foreach (var highlight in searchResult.Highlights)
+                    if (entityName == Document.MetadataEntityName)
                     {
-                        if (Document.TryResolveCdsAttributeName(highlight.Key, cdsEntityName, out string cdsAttributeName))
+                        //
+                        // Metadata values
+                        //
+
+                        foreach (var highlight in searchResult.Highlights)
                         {
-                            string fieldValue = searchResult.Document[highlight.Key].ToString();
+                            string matchedText = searchResult.Document[highlight.Key].ToString();
 
-                            foreach (string fragment in highlight.Value)
+                            var matchedTerm = new MatchedTerm
                             {
-                                int startIndex = fragment.IndexOf(HighlightPreTag, StringComparison.Ordinal) + HighlightPreTag.Length;
-                                int length = fragment.LastIndexOf(HighlightPostTag, StringComparison.Ordinal) - startIndex;
-                                string matchedText = fragment.Substring(startIndex, length).Replace(HighlightPreTag, null).Replace(HighlightPostTag, null);
+                                Text = matchedText,
+                                StartIndex = query.IndexOf(matchedText, StringComparison.OrdinalIgnoreCase),
+                                Length = matchedText.Length,
+                                TermBindings = new HashSet<TermBinding>(),
+                            };
 
-                                var matchedTerm = new MatchedTerm
+                            matchedTerm.TermBindings.Add(new TermBinding()
+                            {
+                                BindingType = highlight.Key == Document.MetadataEntityAttributeFieldName ? BindingType.Column : BindingType.Table,
+                                SearchScope = new SearchScope()
                                 {
-                                    Text = matchedText,
-                                    StartIndex = query.IndexOf(matchedText, StringComparison.OrdinalIgnoreCase),
-                                    Length = matchedText.Length,
-                                    TermBindings = new HashSet<TermBinding>(),
-                                };
+                                    Table = searchResult.Document[Document.MetadataEntityEntityFieldName].ToString(),
+                                    Column = searchResult.Document[Document.MetadataEntityAttributeFieldName].ToString(),
+                                },
+                                Value = matchedText,
+                                IsExactlyMatch = true,
+                                IsSynonymMatch = false,
+                            });
 
-                                matchedTerm.TermBindings.Add(new TermBinding()
+                            if (matchedTerm.StartIndex < 0)
+                            {
+                                _logger.LogWarning($"matched term's start index is less than zero: {matchedTerm}");
+                            }
+
+                            matchedTerms.Add(matchedTerm);
+                        }
+                    }
+                    else
+                    {
+                        //
+                        // Instance values
+                        //
+
+                        string cdsEntityName = entityName;
+
+                        foreach (var highlight in searchResult.Highlights)
+                        {
+                            if (Document.TryResolveCdsAttributeName(highlight.Key, cdsEntityName, out string cdsAttributeName))
+                            {
+                                string fieldValue = searchResult.Document[highlight.Key].ToString();
+
+                                foreach (string fragment in highlight.Value)
                                 {
-                                    BindingType = BindingType.InstanceValue,
-                                    SearchScope = new SearchScope()
+                                    int startIndex = fragment.IndexOf(HighlightPreTag, StringComparison.Ordinal) + HighlightPreTag.Length;
+                                    int length = fragment.LastIndexOf(HighlightPostTag, StringComparison.Ordinal) - startIndex;
+                                    string matchedText = fragment.Substring(startIndex, length).Replace(HighlightPreTag, null).Replace(HighlightPostTag, null);
+
+                                    var matchedTerm = new MatchedTerm
                                     {
-                                        Table = cdsEntityName,
-                                        Column = cdsAttributeName,
-                                    },
-                                    Value = fieldValue,
-                                    IsExactlyMatch = StringComparer.OrdinalIgnoreCase.Equals(fieldValue, matchedText),
-                                    IsSynonymMatch = false,
-                                });
+                                        Text = matchedText,
+                                        StartIndex = query.IndexOf(matchedText, StringComparison.OrdinalIgnoreCase),
+                                        Length = matchedText.Length,
+                                        TermBindings = new HashSet<TermBinding>(),
+                                    };
 
-                                matchedTerms.Add(matchedTerm);
+                                    matchedTerm.TermBindings.Add(new TermBinding()
+                                    {
+                                        BindingType = BindingType.InstanceValue,
+                                        SearchScope = new SearchScope()
+                                        {
+                                            Table = cdsEntityName,
+                                            Column = cdsAttributeName,
+                                        },
+                                        Value = fieldValue,
+                                        IsExactlyMatch = StringComparer.OrdinalIgnoreCase.Equals(fieldValue, matchedText),
+                                        IsSynonymMatch = false,
+                                    });
+
+                                    if (matchedTerm.StartIndex < 0)
+                                    {
+                                        _logger.LogWarning($"matched term's start index is less than zero: {matchedTerm}");
+                                    }
+
+                                    matchedTerms.Add(matchedTerm);
+                                }
                             }
                         }
                     }
