@@ -100,12 +100,10 @@ namespace IndexServer.Controllers
                                 IsSynonymMatch = false,
                             });
 
-                            if (matchedTerm.StartIndex < 0)
+                            if (matchedTerm.StartIndex >= 0)
                             {
-                                _logger.LogWarning($"matched term's start index is less than zero: {matchedTerm}");
+                                matchedTerms.Add(matchedTerm);
                             }
-
-                            matchedTerms.Add(matchedTerm);
                         }
                     }
                     else
@@ -149,12 +147,10 @@ namespace IndexServer.Controllers
                                         IsSynonymMatch = false,
                                     });
 
-                                    if (matchedTerm.StartIndex < 0)
+                                    if (matchedTerm.StartIndex >= 0)
                                     {
-                                        _logger.LogWarning($"matched term's start index is less than zero: {matchedTerm}");
+                                        matchedTerms.Add(matchedTerm);
                                     }
-
-                                    matchedTerms.Add(matchedTerm);
                                 }
                             }
                         }
