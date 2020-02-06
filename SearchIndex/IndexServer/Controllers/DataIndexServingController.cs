@@ -15,8 +15,8 @@ namespace IndexServer.Controllers
     [ApiController]
     public class DataIndexServingController : ControllerBase
     {
-        private const string HighlightPreTag = "<em>";
-        private const string HighlightPostTag = "</em>";
+        private static readonly string HighlightPreTag = string.Empty;
+        private static readonly string HighlightPostTag = string.Empty;
 
         private readonly ISearchIndexClientProvider _searchIndexClientProvider;
         private readonly ILogger<DataIndexServingController> _logger;
@@ -65,92 +65,67 @@ namespace IndexServer.Controllers
 
             if (searchResults.Count > 0)
             {
+                var queryTokens = query.ToTokenArray();
+
                 foreach (var searchResult in searchResults)
                 {
                     string entityName = searchResult.Document[Document.EntityNameFieldName].ToString();
 
                     if (entityName == Document.MetadataEntityName)
                     {
-                        //
-                        // Metadata values
-                        //
-
-                        foreach (var highlight in searchResult.Highlights)
-                        {
-                            string matchedText = searchResult.Document[highlight.Key].ToString();
-
-                            var matchedTerm = new MatchedTerm
-                            {
-                                Text = matchedText,
-                                StartIndex = query.IndexOf(matchedText, StringComparison.OrdinalIgnoreCase),
-                                Length = matchedText.Length,
-                                TermBindings = new HashSet<TermBinding>(),
-                            };
-
-                            matchedTerm.TermBindings.Add(new TermBinding()
-                            {
-                                BindingType = highlight.Key == Document.MetadataEntityAttributeFieldName ? BindingType.Column : BindingType.Table,
-                                SearchScope = new SearchScope()
-                                {
-                                    Table = searchResult.Document[Document.MetadataEntityEntityFieldName].ToString(),
-                                    Column = searchResult.Document[Document.MetadataEntityAttributeFieldName].ToString(),
-                                },
-                                Value = matchedText,
-                                IsExactlyMatch = true,
-                                IsSynonymMatch = false,
-                            });
-
-                            if (matchedTerm.StartIndex >= 0)
-                            {
-                                matchedTerms.Add(matchedTerm);
-                            }
-                        }
+                        continue;
                     }
-                    else
+
+                    string cdsEntityName = entityName;
+
+                    foreach (var highlight in searchResult.Highlights)
                     {
-                        //
-                        // Instance values
-                        //
-
-                        string cdsEntityName = entityName;
-
-                        foreach (var highlight in searchResult.Highlights)
+                        if (Document.TryResolveCdsAttributeName(highlight.Key, cdsEntityName, out string cdsAttributeName))
                         {
-                            if (Document.TryResolveCdsAttributeName(highlight.Key, cdsEntityName, out string cdsAttributeName))
+                            string fieldValue = searchResult.Document[highlight.Key].ToString();
+
+                            foreach (string fragment in highlight.Value)
                             {
-                                string fieldValue = searchResult.Document[highlight.Key].ToString();
+                                var fragmentTokens = fragment.ToTokenArray();
 
-                                foreach (string fragment in highlight.Value)
+                                var lcsTokens = TokenUtilities.FindLcs(queryTokens, fragmentTokens, TokenValueEqualityComparer.OrdinalIgnoreCase).ToArray();
+
+                                if (lcsTokens.Length == 0)
                                 {
-                                    int startIndex = fragment.IndexOf(HighlightPreTag, StringComparison.Ordinal) + HighlightPreTag.Length;
-                                    int length = fragment.LastIndexOf(HighlightPostTag, StringComparison.Ordinal) - startIndex;
-                                    string matchedText = fragment.Substring(startIndex, length).Replace(HighlightPreTag, null).Replace(HighlightPostTag, null);
+                                    continue;
+                                }
 
-                                    var matchedTerm = new MatchedTerm
-                                    {
-                                        Text = matchedText,
-                                        StartIndex = query.IndexOf(matchedText, StringComparison.OrdinalIgnoreCase),
-                                        Length = matchedText.Length,
-                                        TermBindings = new HashSet<TermBinding>(),
-                                    };
+                                string matchedText = query.Substring(lcsTokens[0].Offset, lcsTokens[^1].Offset + lcsTokens[^1].Value.Length - lcsTokens[0].Offset);
+                                int startIndex = lcsTokens[0].Offset;
 
-                                    matchedTerm.TermBindings.Add(new TermBinding()
-                                    {
-                                        BindingType = BindingType.InstanceValue,
-                                        SearchScope = new SearchScope()
-                                        {
-                                            Table = cdsEntityName,
-                                            Column = cdsAttributeName,
-                                        },
-                                        Value = fieldValue,
-                                        IsExactlyMatch = StringComparer.OrdinalIgnoreCase.Equals(fieldValue, matchedText),
-                                        IsSynonymMatch = false,
-                                    });
+                                var matchedTerm = new MatchedTerm
+                                {
+                                    Text = matchedText,
+                                    StartIndex = startIndex,
+                                    Length = matchedText.Length,
+                                    TermBindings = new HashSet<TermBinding>(),
+                                };
 
-                                    if (matchedTerm.StartIndex >= 0)
+                                matchedTerm.TermBindings.Add(new TermBinding()
+                                {
+                                    BindingType = BindingType.InstanceValue,
+                                    SearchScope = new SearchScope()
                                     {
-                                        matchedTerms.Add(matchedTerm);
-                                    }
+                                        Table = cdsEntityName,
+                                        Column = cdsAttributeName,
+                                    },
+                                    Value = fieldValue,
+                                    IsExactlyMatch = StringComparer.OrdinalIgnoreCase.Equals(fieldValue, matchedText),
+                                    IsSynonymMatch = false,
+                                });
+
+                                if (matchedTerm.StartIndex >= 0)
+                                {
+                                    matchedTerms.Add(matchedTerm);
+                                }
+                                else
+                                {
+                                    _logger.LogWarning($"start index of matched term is incorrect: {matchedTerm}");
                                 }
                             }
                         }
