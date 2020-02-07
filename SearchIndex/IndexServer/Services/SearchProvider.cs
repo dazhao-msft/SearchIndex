@@ -1,6 +1,7 @@
 ﻿using IndexServer.Models;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -10,14 +11,17 @@ namespace IndexServer.Services
 {
     public class SearchProvider : ISearchProvider
     {
-        private readonly ISearchIndexClientProvider _searchIndexClientProvider;
+        private readonly IConfiguration _configuration;
+        private readonly ISearchClientProvider _searchClientProvider;
         private readonly IEnumerable<ISearchResultHandler> _searchResultHandlers;
 
         public SearchProvider(
-            ISearchIndexClientProvider searchIndexClientProvider,
+            IConfiguration configuration,
+            ISearchClientProvider searchClientProvider,
             IEnumerable<ISearchResultHandler> searchResultHandlers)
         {
-            _searchIndexClientProvider = searchIndexClientProvider;
+            _configuration = configuration;
+            _searchClientProvider = searchClientProvider;
             _searchResultHandlers = searchResultHandlers;
         }
 
@@ -28,23 +32,24 @@ namespace IndexServer.Services
                 return Array.Empty<MatchedTerm>();
             }
 
-            searchText = searchText.TrimEnd(new[] { ' ', ',', '.', '?', '!' });
-
             var searchParameters = new SearchParameters()
             {
                 SearchMode = SearchMode.Any,
                 SearchFields = Document.SearchableFields,
                 HighlightFields = Document.SearchableFields,
-                HighlightPreTag = string.Empty,
-                HighlightPostTag = string.Empty,
+                HighlightPreTag = "<em>",
+                HighlightPostTag = "</em>"
             };
 
-            var searchIndexClient = _searchIndexClientProvider.CreateSearchIndexClient();
+            var searchServiceClient = _searchClientProvider.CreateSearchServiceClient();
+            var tokens = (await searchServiceClient.Indexes.AnalyzeAsync(_configuration["SearchIndexName"], new AnalyzeRequest() { Text = searchText, Analyzer = AnalyzerName.AsString.EnMicrosoft })).Tokens;
+
+            var searchIndexClient = _searchClientProvider.CreateSearchIndexClient();
             var searchResults = (await searchIndexClient.Documents.SearchAsync(searchText, searchParameters)).Results;
 
             var matchedTerms = new List<MatchedTerm>();
 
-            var context = new SearchResultHandlerContext(searchText, searchParameters, searchResults, matchedTerms);
+            var context = new SearchResultHandlerContext(searchText, tokens, searchParameters, searchResults, matchedTerms);
 
             foreach (var handler in _searchResultHandlers)
             {

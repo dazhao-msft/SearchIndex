@@ -8,17 +8,21 @@ namespace IndexServer.Services
     {
         public SearchResultHandlerContext(
             string searchText,
+            IList<TokenInfo> tokens,
             SearchParameters searchParameters,
             IList<SearchResult<Document>> searchResults,
             IList<MatchedTerm> matchedTerms)
         {
             SearchText = searchText;
+            Tokens = tokens;
             SearchParameters = searchParameters;
             SearchResults = searchResults;
             MatchedTerms = matchedTerms;
         }
 
         public string SearchText { get; }
+
+        public IList<TokenInfo> Tokens { get; }
 
         public SearchParameters SearchParameters { get; }
 

@@ -2,8 +2,10 @@
 
 namespace IndexServer.Services
 {
-    public interface ISearchIndexClientProvider
+    public interface ISearchClientProvider
     {
+        ISearchServiceClient CreateSearchServiceClient();
+
         ISearchIndexClient CreateSearchIndexClient();
     }
 }

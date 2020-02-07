@@ -24,6 +24,7 @@ namespace IndexBuilder
             {
                 Name = indexName,
                 Fields = FieldBuilder.BuildForType<Document>(),
+                Analyzers = new List<Analyzer>() { new Analyzer(AnalyzerName.AsString.EnMicrosoft) },
             };
 
             return await serviceClient.Indexes.CreateAsync(definition);

@@ -1,29 +1,25 @@
 ﻿using IndexModels;
 using IndexServer.Models;
-using IndexServer.Tokens;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace IndexServer.Services
 {
     public class InstanceSearchResultHandler : ISearchResultHandler
     {
-        private readonly ITokenizer _tokenizer;
         private readonly ILogger<InstanceSearchResultHandler> _logger;
 
-        public InstanceSearchResultHandler(ITokenizer tokenizer, ILogger<InstanceSearchResultHandler> logger)
+        public InstanceSearchResultHandler(ILogger<InstanceSearchResultHandler> logger)
         {
-            _tokenizer = tokenizer;
             _logger = logger;
         }
 
         public async Task ProcessAsync(SearchResultHandlerContext context)
         {
             await Task.Yield();
-
-            var queryTokenSequence = new TokenSequence(context.SearchText, _tokenizer);
 
             foreach (var searchResult in context.SearchResults)
             {
@@ -44,47 +40,76 @@ namespace IndexServer.Services
 
                         foreach (string fragment in highlight.Value)
                         {
-                            var fragmentTokenSequence = new TokenSequence(fragment, _tokenizer);
-
-                            string matchedText = queryTokenSequence.FindLcs(fragmentTokenSequence, StringComparer.OrdinalIgnoreCase);
-
-                            if (string.IsNullOrEmpty(matchedText))
+                            foreach (string tokenValue in GetTokenValuesFromFragment(fragment, context.SearchParameters.HighlightPreTag, context.SearchParameters.HighlightPostTag))
                             {
-                                continue;
-                            }
+                                //
+                                // Question: what if the same word shows in multiple positions?
+                                //
+                                var token = context.Tokens.FirstOrDefault(p => p.Token == tokenValue);
 
-                            var matchedTerm = new MatchedTerm
-                            {
-                                Text = matchedText,
-                                StartIndex = context.SearchText.IndexOf(matchedText, StringComparison.OrdinalIgnoreCase),
-                                Length = matchedText.Length,
-                                TermBindings = new HashSet<TermBinding>(),
-                            };
-
-                            matchedTerm.TermBindings.Add(new TermBinding()
-                            {
-                                BindingType = BindingType.InstanceValue,
-                                SearchScope = new SearchScope()
+                                if (token == null)
                                 {
-                                    Table = cdsEntityName,
-                                    Column = cdsAttributeName,
-                                },
-                                Value = fieldValue,
-                                IsExactlyMatch = StringComparer.OrdinalIgnoreCase.Equals(fieldValue, matchedText),
-                                IsSynonymMatch = false,
-                            });
+                                    _logger.LogWarning($"Token value '{tokenValue}' isn't matched.");
+                                    continue;
+                                }
 
-                            if (matchedTerm.StartIndex >= 0)
-                            {
+                                //
+                                // Question: why offset is nullable?
+                                //
+                                string matchedText = context.SearchText[(int)token.StartOffset..(int)token.EndOffset];
+
+                                var matchedTerm = new MatchedTerm
+                                {
+                                    Text = matchedText,
+                                    StartIndex = (int)token.StartOffset,
+                                    Length = matchedText.Length,
+                                    TermBindings = new HashSet<TermBinding>(),
+                                };
+
+                                matchedTerm.TermBindings.Add(new TermBinding()
+                                {
+                                    BindingType = BindingType.InstanceValue,
+                                    SearchScope = new SearchScope()
+                                    {
+                                        Table = cdsEntityName,
+                                        Column = cdsAttributeName,
+                                    },
+                                    Value = token.Token,
+                                    IsExactlyMatch = token.Token == matchedText,
+                                    IsSynonymMatch = false,
+                                });
+
                                 context.MatchedTerms.Add(matchedTerm);
-                            }
-                            else
-                            {
-                                _logger.LogWarning($"start index of matched term is incorrect: {matchedTerm}");
                             }
                         }
                     }
                 }
+            }
+        }
+
+        private static IEnumerable<string> GetTokenValuesFromFragment(string fragment, string preTag, string postTag)
+        {
+            var fragmentAsMemory = fragment.AsMemory();
+
+            while (true)
+            {
+                int preTagIndex = fragmentAsMemory.Span.IndexOf(preTag);
+                if (preTagIndex < 0)
+                {
+                    yield break;
+                }
+
+                fragmentAsMemory = fragmentAsMemory.Slice(preTagIndex + preTag.Length);
+
+                int postTagIndex = fragmentAsMemory.Span.IndexOf(postTag);
+                if (postTagIndex < 0)
+                {
+                    throw new InvalidOperationException("pre tag and post tag don't match.");
+                }
+
+                yield return fragmentAsMemory.Slice(0, postTagIndex).ToString();
+
+                fragmentAsMemory = fragmentAsMemory.Slice(postTagIndex + postTag.Length);
             }
         }
     }
