@@ -1,4 +1,5 @@
 ﻿using Microsoft.Azure.Search;
+using Microsoft.Azure.Search.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -12,11 +13,11 @@ namespace IndexModels
         public const string MetadataEntityEntityFieldName = MetadataEntityName + FieldNameDelimiter + "entity";
         public const string MetadataEntityAttributeFieldName = MetadataEntityName + FieldNameDelimiter + "attribute";
 
-        [IsSearchable, IsFilterable, IsFacetable]
+        [IsSearchable, IsFilterable, IsFacetable, Analyzer(AnalyzerName.AsString.EnMicrosoft)]
         [JsonProperty(MetadataEntityEntityFieldName)]
         public string MetadataEntity { get; set; }
 
-        [IsSearchable, IsFilterable, IsFacetable]
+        [IsSearchable, IsFilterable, IsFacetable, Analyzer(AnalyzerName.AsString.EnMicrosoft)]
         [JsonProperty(MetadataEntityAttributeFieldName)]
         public string MetadataAttribute { get; set; }
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Azure.Search;
+using Microsoft.Azure.Search.Models;
 using Newtonsoft.Json;
 
 namespace IndexModels
@@ -8,12 +9,12 @@ namespace IndexModels
         public const string OpportunityEntityName = "opportunity";
         public const string OpportunityEntityIdName = "opportunityid";
 
-        [IsSearchable, IsFilterable, IsFacetable]
+        [IsSearchable, IsFilterable, IsFacetable, Analyzer(AnalyzerName.AsString.EnMicrosoft)]
         [JsonProperty(OpportunityEntityName + FieldNameDelimiter + "name")]
         [PrimaryField]
         public string OpportunityName { get; set; }
 
-        [IsSearchable, IsFilterable, IsFacetable]
+        [IsSearchable, IsFilterable, IsFacetable, Analyzer(AnalyzerName.AsString.EnMicrosoft)]
         [JsonProperty(OpportunityEntityName + FieldNameDelimiter + "stepname")]
         public string OpportunityPipelinePhase { get; set; }
     }
