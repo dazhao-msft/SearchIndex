@@ -49,11 +49,11 @@ namespace IndexServer.Services
 
             var matchedTerms = new List<MatchedTerm>();
 
-            var context = new SearchResultHandlerContext(searchText, tokens, searchParameters, searchResults, matchedTerms);
+            var searchResultHandlerContext = new SearchResultHandlerContext(searchText, tokens, searchParameters, searchResults, matchedTerms);
 
-            foreach (var handler in _searchResultHandlers)
+            foreach (var searchResultHandler in _searchResultHandlers)
             {
-                await handler.ProcessAsync(context);
+                await searchResultHandler.ProcessAsync(searchResultHandlerContext);
             }
 
             return matchedTerms;

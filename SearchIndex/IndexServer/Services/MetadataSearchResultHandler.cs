@@ -3,6 +3,7 @@ using IndexServer.Models;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace IndexServer.Services
@@ -31,63 +32,46 @@ namespace IndexServer.Services
 
                 foreach (var highlight in searchResult.Highlights)
                 {
-                    if (highlight.Key == Document.MetadataEntityEntityFieldName)
+                    foreach (string fragment in highlight.Value)
                     {
-                        string cdsEntityName = searchResult.Document[Document.MetadataEntityEntityFieldName].ToString();
-
-                        int startIndex = context.SearchText.IndexOf(cdsEntityName, StringComparison.OrdinalIgnoreCase);
-                        if (startIndex >= 0)
+                        foreach (string tokenValue in TokenHelper.GetTokenValuesFromFragment(fragment, context.SearchParameters.HighlightPreTag, context.SearchParameters.HighlightPostTag))
                         {
+                            //
+                            // Question: what if the same word shows in multiple positions?
+                            //
+                            var token = context.Tokens.FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.Token, tokenValue));
+
+                            if (token == null)
+                            {
+                                _logger.LogWarning($"Token value '{tokenValue}' isn't matched.");
+                                continue;
+                            }
+
+                            //
+                            // Question: why offset is nullable?
+                            //
+                            string matchedText = context.SearchText[(int)token.StartOffset..(int)token.EndOffset];
+
                             var matchedTerm = new MatchedTerm
                             {
-                                Text = cdsEntityName,
-                                StartIndex = startIndex,
-                                Length = cdsEntityName.Length,
+                                Text = matchedText,
+                                StartIndex = (int)token.StartOffset,
+                                Length = matchedText.Length,
                                 TermBindings = new HashSet<TermBinding>(),
                             };
 
-                            matchedTerm.TermBindings.Add(new TermBinding()
-                            {
-                                BindingType = BindingType.Table,
-                                SearchScope = new SearchScope()
-                                {
-                                    Table = cdsEntityName,
-                                    Column = null,
-                                },
-                                Value = cdsEntityName,
-                                IsExactlyMatch = true,
-                                IsSynonymMatch = false,
-                            });
-
-                            context.MatchedTerms.Add(matchedTerm);
-                        }
-                    }
-                    else if (highlight.Key == Document.MetadataEntityAttributeFieldName)
-                    {
-                        string cdsEntityName = searchResult.Document[Document.MetadataEntityEntityFieldName].ToString();
-                        string cdsAttributeName = searchResult.Document[Document.MetadataEntityAttributeFieldName].ToString();
-
-                        int startIndex = context.SearchText.IndexOf(cdsAttributeName, StringComparison.OrdinalIgnoreCase);
-                        if (startIndex >= 0)
-                        {
-                            var matchedTerm = new MatchedTerm
-                            {
-                                Text = cdsAttributeName,
-                                StartIndex = startIndex,
-                                Length = cdsAttributeName.Length,
-                                TermBindings = new HashSet<TermBinding>(),
-                            };
+                            bool isEntityNameMatched = highlight.Key == Document.MetadataEntityEntityFieldName;
 
                             matchedTerm.TermBindings.Add(new TermBinding()
                             {
-                                BindingType = BindingType.Column,
+                                BindingType = isEntityNameMatched ? BindingType.Table : BindingType.Column,
                                 SearchScope = new SearchScope()
                                 {
-                                    Table = cdsEntityName,
-                                    Column = cdsAttributeName,
+                                    Table = searchResult.Document[Document.MetadataEntityEntityFieldName].ToString(),
+                                    Column = isEntityNameMatched ? null : searchResult.Document[Document.MetadataEntityAttributeFieldName].ToString(),
                                 },
-                                Value = cdsAttributeName,
-                                IsExactlyMatch = true,
+                                Value = searchResult.Document[highlight.Key].ToString(),
+                                IsExactlyMatch = token.Token == matchedText,
                                 IsSynonymMatch = false,
                             });
 

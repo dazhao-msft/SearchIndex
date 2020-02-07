@@ -36,16 +36,14 @@ namespace IndexServer.Services
                 {
                     if (Document.TryResolveCdsAttributeName(highlight.Key, cdsEntityName, out string cdsAttributeName))
                     {
-                        string fieldValue = searchResult.Document[highlight.Key].ToString();
-
                         foreach (string fragment in highlight.Value)
                         {
-                            foreach (string tokenValue in GetTokenValuesFromFragment(fragment, context.SearchParameters.HighlightPreTag, context.SearchParameters.HighlightPostTag))
+                            foreach (string tokenValue in TokenHelper.GetTokenValuesFromFragment(fragment, context.SearchParameters.HighlightPreTag, context.SearchParameters.HighlightPostTag))
                             {
                                 //
                                 // Question: what if the same word shows in multiple positions?
                                 //
-                                var token = context.Tokens.FirstOrDefault(p => p.Token == tokenValue);
+                                var token = context.Tokens.FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.Token, tokenValue));
 
                                 if (token == null)
                                 {
@@ -74,7 +72,7 @@ namespace IndexServer.Services
                                         Table = cdsEntityName,
                                         Column = cdsAttributeName,
                                     },
-                                    Value = token.Token,
+                                    Value = searchResult.Document[highlight.Key].ToString(),
                                     IsExactlyMatch = token.Token == matchedText,
                                     IsSynonymMatch = false,
                                 });
@@ -84,32 +82,6 @@ namespace IndexServer.Services
                         }
                     }
                 }
-            }
-        }
-
-        private static IEnumerable<string> GetTokenValuesFromFragment(string fragment, string preTag, string postTag)
-        {
-            var fragmentAsMemory = fragment.AsMemory();
-
-            while (true)
-            {
-                int preTagIndex = fragmentAsMemory.Span.IndexOf(preTag);
-                if (preTagIndex < 0)
-                {
-                    yield break;
-                }
-
-                fragmentAsMemory = fragmentAsMemory.Slice(preTagIndex + preTag.Length);
-
-                int postTagIndex = fragmentAsMemory.Span.IndexOf(postTag);
-                if (postTagIndex < 0)
-                {
-                    throw new InvalidOperationException("pre tag and post tag don't match.");
-                }
-
-                yield return fragmentAsMemory.Slice(0, postTagIndex).ToString();
-
-                fragmentAsMemory = fragmentAsMemory.Slice(postTagIndex + postTag.Length);
             }
         }
     }
