@@ -51,6 +51,7 @@ namespace IndexServer.Services
                             // Question: why offset is nullable?
                             //
                             string matchedText = context.SearchText[(int)token.StartOffset..(int)token.EndOffset];
+                            string fieldValue = searchResult.Document[highlight.Key].ToString();
 
                             var matchedTerm = new MatchedTerm
                             {
@@ -70,8 +71,8 @@ namespace IndexServer.Services
                                     Table = searchResult.Document[Document.MetadataEntityEntityFieldName].ToString(),
                                     Column = isEntityNameMatched ? null : searchResult.Document[Document.MetadataEntityAttributeFieldName].ToString(),
                                 },
-                                Value = searchResult.Document[highlight.Key].ToString(),
-                                IsExactlyMatch = token.Token == matchedText,
+                                Value = fieldValue,
+                                IsExactlyMatch = StringComparer.OrdinalIgnoreCase.Equals(matchedText, fieldValue),
                                 IsSynonymMatch = false,
                             });
 
