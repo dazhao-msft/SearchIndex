@@ -13,7 +13,7 @@ namespace IndexModels
     {
         #region Common
 
-        public const string DocumentAnalyzerName = AnalyzerName.AsString.EnLucene;
+        public const string DocumentAnalyzerName = AnalyzerName.AsString.StandardLucene;
 
         public const string FieldNameDelimiter = "__";
 
