@@ -6,7 +6,7 @@ namespace IndexServer.Tokens
     /// <summary>
     /// Splits the given string into tokens using whitespace as separator.
     /// </summary>
-    public sealed class DefaultTokenizer : ITokenizer
+    public sealed class Tokenizer : ITokenizer
     {
         public IEnumerable<(string, int)> Tokenize(string value)
         {
