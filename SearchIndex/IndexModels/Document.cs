@@ -1,4 +1,5 @@
 ﻿using Microsoft.Azure.Search;
+using Microsoft.Azure.Search.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,8 @@ namespace IndexModels
     public partial class Document
     {
         #region Common
+
+        public const string DocumentAnalyzerName = AnalyzerName.AsString.EnLucene;
 
         public const string FieldNameDelimiter = "__";
 

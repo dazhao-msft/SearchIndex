@@ -13,11 +13,11 @@ namespace IndexModels
         public const string MetadataEntityEntityFieldName = MetadataEntityName + FieldNameDelimiter + "entity";
         public const string MetadataEntityAttributeFieldName = MetadataEntityName + FieldNameDelimiter + "attribute";
 
-        [IsSearchable, IsFilterable, IsFacetable, Analyzer(AnalyzerName.AsString.EnMicrosoft)]
+        [IsSearchable, IsFilterable, IsFacetable, Analyzer(DocumentAnalyzerName)]
         [JsonProperty(MetadataEntityEntityFieldName)]
         public string MetadataEntity { get; set; }
 
-        [IsSearchable, IsFilterable, IsFacetable, Analyzer(AnalyzerName.AsString.EnMicrosoft)]
+        [IsSearchable, IsFilterable, IsFacetable, Analyzer(DocumentAnalyzerName)]
         [JsonProperty(MetadataEntityAttributeFieldName)]
         public string MetadataAttribute { get; set; }
 

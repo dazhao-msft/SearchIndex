@@ -42,7 +42,7 @@ namespace IndexServer.Services
             };
 
             var searchServiceClient = _searchClientProvider.CreateSearchServiceClient();
-            var tokens = (await searchServiceClient.Indexes.AnalyzeAsync(_configuration["SearchIndexName"], new AnalyzeRequest() { Text = searchText, Analyzer = AnalyzerName.AsString.EnMicrosoft })).Tokens;
+            var tokens = (await searchServiceClient.Indexes.AnalyzeAsync(_configuration["SearchIndexName"], new AnalyzeRequest() { Text = searchText, Analyzer = Document.DocumentAnalyzerName })).Tokens;
 
             var searchIndexClient = _searchClientProvider.CreateSearchIndexClient();
             var searchResults = (await searchIndexClient.Documents.SearchAsync(searchText, searchParameters)).Results;
