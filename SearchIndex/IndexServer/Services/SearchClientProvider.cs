@@ -1,31 +1,41 @@
 ﻿using Microsoft.Azure.Search;
 using Microsoft.Extensions.Configuration;
+using System.Net.Http;
 
 namespace IndexServer.Services
 {
     public class SearchClientProvider : ISearchClientProvider
     {
-        private readonly string _serviceName;
-        private readonly string _indexName;
-        private readonly string _adminApiKey;
-        private readonly string _queryApiKey;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
 
-        public SearchClientProvider(IConfiguration configuration)
+        public SearchClientProvider(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
-            _serviceName = configuration["SearchServiceName"];
-            _indexName = configuration["SearchIndexName"];
-            _adminApiKey = configuration["SearchServiceAdminApiKey"];
-            _queryApiKey = configuration["SearchServiceQueryApiKey"];
+            _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
         }
 
         public ISearchServiceClient CreateSearchServiceClient()
         {
-            return new SearchServiceClient(_serviceName, new SearchCredentials(_adminApiKey));
+            var credentials = new SearchCredentials(_configuration["SearchServiceAdminApiKey"]);
+            var httpClient = _httpClientFactory.CreateClient();
+
+            return new SearchServiceClient(credentials, httpClient, false)
+            {
+                SearchServiceName = _configuration["SearchServiceName"],
+            };
         }
 
         public ISearchIndexClient CreateSearchIndexClient()
         {
-            return new SearchIndexClient(_serviceName, _indexName, new SearchCredentials(_queryApiKey));
+            var credentials = new SearchCredentials(_configuration["SearchServiceQueryApiKey"]);
+            var httpClient = _httpClientFactory.CreateClient();
+
+            return new SearchIndexClient(credentials, httpClient, false)
+            {
+                SearchServiceName = _configuration["SearchServiceName"],
+                IndexName = _configuration["SearchIndexName"],
+            };
         }
     }
 }
