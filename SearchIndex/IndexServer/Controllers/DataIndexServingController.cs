@@ -34,13 +34,16 @@ namespace IndexServer.Controllers
 
         private async Task<IReadOnlyCollection<MatchedTerm>> SearchCoreAsync(string query)
         {
-            _logger.LogInformation($"Trace ID: {HttpContext.TraceIdentifier} | Query: {query}");
+            using (var benchmarkScope = new BenchmarkScope(_logger, $"Trace ID: {HttpContext.TraceIdentifier} | searching text"))
+            {
+                _logger.LogInformation($"Trace ID: {HttpContext.TraceIdentifier} | Query: {query}");
 
-            var matchedTerms = await _searchProvider.SearchAsync(query);
+                var matchedTerms = await _searchProvider.SearchAsync(query);
 
-            _logger.LogInformation($"Trace ID: {HttpContext.TraceIdentifier} | Count of matched terms: {matchedTerms.Count}");
+                _logger.LogInformation($"Trace ID: {HttpContext.TraceIdentifier} | Count of matched terms: {matchedTerms.Count}");
 
-            return matchedTerms;
+                return matchedTerms;
+            }
         }
     }
 }
