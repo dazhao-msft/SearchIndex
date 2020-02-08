@@ -11,7 +11,7 @@ namespace IndexServer.Services
             IList<TokenInfo> tokens,
             SearchParameters searchParameters,
             IList<SearchResult<Document>> searchResults,
-            IList<MatchedTerm> matchedTerms)
+            ICollection<MatchedTerm> matchedTerms)
         {
             SearchText = searchText;
             Tokens = tokens;
@@ -28,6 +28,6 @@ namespace IndexServer.Services
 
         public IList<SearchResult<Document>> SearchResults { get; }
 
-        public IList<MatchedTerm> MatchedTerms { get; }
+        public ICollection<MatchedTerm> MatchedTerms { get; }
     }
 }

@@ -37,21 +37,27 @@ namespace IndexServer.Services
                 return Array.Empty<MatchedTerm>();
             }
 
-            var searchParameters = new SearchParameters()
+            var analyzeRequest = new AnalyzeRequest()
             {
-                SearchMode = SearchMode.Any,
-                SearchFields = Document.SearchableFields,
-                HighlightFields = Document.SearchableFields,
-                HighlightPreTag = "<em>",
-                HighlightPostTag = "</em>"
+                Text = searchText,
+                Analyzer = Document.DocumentAnalyzerName,
             };
 
             IList<TokenInfo> tokens = null;
             using (var benchmarkScope = new BenchmarkScope(_logger, "analyzing text"))
             {
                 var searchServiceClient = _searchClientProvider.CreateSearchServiceClient();
-                tokens = (await searchServiceClient.Indexes.AnalyzeAsync(_configuration["SearchIndexName"], new AnalyzeRequest() { Text = searchText, Analyzer = Document.DocumentAnalyzerName })).Tokens;
+                tokens = (await searchServiceClient.Indexes.AnalyzeAsync(_configuration["SearchIndexName"], analyzeRequest)).Tokens;
             }
+
+            var searchParameters = new SearchParameters()
+            {
+                SearchMode = SearchMode.Any,
+                SearchFields = Document.SearchableFields,
+                HighlightFields = Document.SearchableFields,
+                HighlightPreTag = "<em>",
+                HighlightPostTag = "</em>",
+            };
 
             IList<SearchResult<AzureSearchDocument>> searchResults = null;
             using (var benchmarkScope = new BenchmarkScope(_logger, "searching text"))
@@ -60,7 +66,7 @@ namespace IndexServer.Services
                 searchResults = (await searchIndexClient.Documents.SearchAsync(searchText, searchParameters)).Results;
             }
 
-            var matchedTerms = new List<MatchedTerm>();
+            var matchedTerms = new HashSet<MatchedTerm>();
 
             var searchResultHandlerContext = new SearchResultHandlerContext(searchText, tokens, searchParameters, searchResults, matchedTerms);
 
