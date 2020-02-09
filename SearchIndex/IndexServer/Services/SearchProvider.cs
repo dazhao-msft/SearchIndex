@@ -30,6 +30,24 @@ namespace IndexServer.Services
             _logger = logger;
         }
 
+        public async Task<IReadOnlyCollection<TokenInfo>> AnalyzeAsync(string searchText, string analyzerName)
+        {
+            var analyzeRequest = new AnalyzeRequest()
+            {
+                Text = searchText,
+                Analyzer = analyzerName,
+            };
+
+            IList<TokenInfo> tokens = null;
+            using (var benchmarkScope = new BenchmarkScope(_logger, "analyzing text"))
+            {
+                var searchServiceClient = _searchClientProvider.CreateSearchServiceClient();
+                tokens = (await searchServiceClient.Indexes.AnalyzeAsync(_configuration["SearchIndexName"], analyzeRequest)).Tokens;
+            }
+
+            return new List<TokenInfo>(tokens);
+        }
+
         public async Task<IReadOnlyCollection<MatchedTerm>> SearchAsync(string searchText)
         {
             if (string.IsNullOrEmpty(searchText))

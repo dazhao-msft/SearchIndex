@@ -20,6 +20,12 @@ namespace IndexServer.Controllers
             _logger = logger;
         }
 
+        [HttpGet("Analyze")]
+        public async Task<ActionResult<IReadOnlyCollection<MatchedTerm>>> AnalyzeAsync([FromQuery] string query, [FromQuery] string analyzer)
+        {
+            return Ok(await _searchProvider.AnalyzeAsync(query, analyzer));
+        }
+
         [HttpGet("Search")]
         public async Task<ActionResult<IReadOnlyCollection<MatchedTerm>>> SearchAsync([FromQuery] string query)
         {

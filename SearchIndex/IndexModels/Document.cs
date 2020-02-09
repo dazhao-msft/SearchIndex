@@ -11,16 +11,18 @@ namespace IndexModels
 {
     public partial class Document
     {
-        #region Common
+        #region Analyzers
 
-        public const string DefaultAnalyzerName = AnalyzerName.AsString.EnMicrosoft;
+        public const string DefaultAnalyzerName = "bizqa-default-analyzer";
 
-        public const string FieldNameDelimiter = "__";
+        public static readonly CustomAnalyzer DefaultAnalyzer = new CustomAnalyzer()
+        {
+            Name = DefaultAnalyzerName,
+            Tokenizer = TokenizerName.Classic,
+            TokenFilters = new[] { TokenFilterName.NGram },
+        };
 
-        public const string EntityIdFieldName = "entity_id";
-        public const string EntityNameFieldName = "entity_name";
-
-        public const string UaxUrlEmailAnalyzerName = "uax-url-email";
+        public const string UaxUrlEmailAnalyzerName = "bizqa-uax-url-email-analyzer";
 
         public static readonly CustomAnalyzer UaxUrlEmailAnalyzer = new CustomAnalyzer()
         {
@@ -28,6 +30,15 @@ namespace IndexModels
             Tokenizer = TokenizerName.UaxUrlEmail,
             TokenFilters = new[] { TokenFilterName.Lowercase },
         };
+
+        #endregion Analyzers
+
+        #region Common fields
+
+        public const string FieldNameDelimiter = "__";
+
+        public const string EntityIdFieldName = "entity_id";
+        public const string EntityNameFieldName = "entity_name";
 
         [Key]
         [IsFilterable]
@@ -38,7 +49,7 @@ namespace IndexModels
         [JsonProperty(EntityNameFieldName)]
         public string EntityName { get; set; }
 
-        #endregion Common
+        #endregion Common fields
 
         #region Helpers
 
