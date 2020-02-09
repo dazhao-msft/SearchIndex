@@ -13,7 +13,7 @@ namespace IndexModels
     {
         #region Analyzers
 
-        public const string DefaultAnalyzerName = AnalyzerName.AsString.StandardLucene;
+        public const string DefaultAnalyzerName = AnalyzerName.AsString.EnMicrosoft;
 
         public const string BizQADefaultAnalyzerName = "bizqa-default-analyzer";
 
@@ -29,7 +29,7 @@ namespace IndexModels
         {
             Name = BizQAUaxUrlEmailAnalyzerName,
             Tokenizer = TokenizerName.UaxUrlEmail,
-            TokenFilters = new[] { TokenFilterName.Lowercase },
+            TokenFilters = new[] { TokenFilterName.Lowercase, TokenFilterName.Stemmer },
         };
 
         #endregion Analyzers
