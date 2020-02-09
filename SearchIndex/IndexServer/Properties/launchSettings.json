@@ -4,7 +4,7 @@
     "IndexServer": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "api/DataIndexServing/Test?query=",
+      "launchUrl": "api/DataIndexServing/Search?query=",
       "applicationUrl": "https://localhost:5001",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
