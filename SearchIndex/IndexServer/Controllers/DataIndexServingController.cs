@@ -20,14 +20,14 @@ namespace IndexServer.Controllers
             _logger = logger;
         }
 
-        [HttpGet("Test")]
-        public async Task<ActionResult<IReadOnlyCollection<MatchedTerm>>> TestAsync([FromQuery] string query)
+        [HttpGet("Search")]
+        public async Task<ActionResult<IReadOnlyCollection<MatchedTerm>>> SearchAsync([FromQuery] string query)
         {
             return Ok(await SearchCoreAsync(query));
         }
 
         [HttpPost("Search")]
-        public async Task<ActionResult<IEnumerable<MatchedTerm>>> SearchAsync([FromBody]DataIndexSearchRequest request)
+        public async Task<ActionResult<IReadOnlyCollection<MatchedTerm>>> SearchAsync([FromBody] DataIndexSearchRequest request)
         {
             return Ok(await SearchCoreAsync(request.Query));
         }
