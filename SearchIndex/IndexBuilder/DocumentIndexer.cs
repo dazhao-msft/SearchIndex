@@ -32,8 +32,8 @@ namespace IndexBuilder
                 Fields = FieldBuilder.BuildForType<Document>(),
                 Analyzers = new[]
                 {
-                    Document.DefaultAnalyzer,
-                    Document.UaxUrlEmailAnalyzer
+                    Document.BizQADefaultAnalyzer,
+                    Document.BizQAUaxUrlEmailAnalyzer
                 },
             };
 

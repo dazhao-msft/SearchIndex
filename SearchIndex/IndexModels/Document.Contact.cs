@@ -26,7 +26,7 @@ namespace IndexModels
         [JsonProperty(ContactEntityName + FieldNameDelimiter + "mobilephone")]
         public string ContactMobilePhone { get; set; }
 
-        [IsSearchable, IsFilterable, IsFacetable, Analyzer(UaxUrlEmailAnalyzerName)]
+        [IsSearchable, IsFilterable, IsFacetable, Analyzer(BizQAUaxUrlEmailAnalyzerName)]
         [JsonProperty(ContactEntityName + FieldNameDelimiter + "emailaddress1")]
         public string ContactEmail { get; set; }
 

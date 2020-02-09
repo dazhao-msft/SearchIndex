@@ -13,20 +13,21 @@ namespace IndexModels
     {
         #region Analyzers
 
-        public const string DefaultAnalyzerName = "bizqa-default-analyzer";
+        public const string DefaultAnalyzerName = AnalyzerName.AsString.StandardLucene;
 
-        public static readonly CustomAnalyzer DefaultAnalyzer = new CustomAnalyzer()
+        public const string BizQADefaultAnalyzerName = "bizqa-default-analyzer";
+
+        public static readonly CustomAnalyzer BizQADefaultAnalyzer = new CustomAnalyzer()
         {
-            Name = DefaultAnalyzerName,
-            Tokenizer = TokenizerName.Classic,
-            TokenFilters = new[] { TokenFilterName.NGram },
+            Name = BizQADefaultAnalyzerName,
+            Tokenizer = TokenizerName.Standard,
         };
 
-        public const string UaxUrlEmailAnalyzerName = "bizqa-uax-url-email-analyzer";
+        public const string BizQAUaxUrlEmailAnalyzerName = "bizqa-uax-url-email-analyzer";
 
-        public static readonly CustomAnalyzer UaxUrlEmailAnalyzer = new CustomAnalyzer()
+        public static readonly CustomAnalyzer BizQAUaxUrlEmailAnalyzer = new CustomAnalyzer()
         {
-            Name = UaxUrlEmailAnalyzerName,
+            Name = BizQAUaxUrlEmailAnalyzerName,
             Tokenizer = TokenizerName.UaxUrlEmail,
             TokenFilters = new[] { TokenFilterName.Lowercase },
         };

@@ -30,7 +30,7 @@ namespace IndexModels
         [JsonProperty(AccountEntityName + FieldNameDelimiter + "telephone1")]
         public string AccountMainPhone { get; set; }
 
-        [IsSearchable, IsFilterable, IsFacetable, Analyzer(UaxUrlEmailAnalyzerName)]
+        [IsSearchable, IsFilterable, IsFacetable, Analyzer(BizQAUaxUrlEmailAnalyzerName)]
         [JsonProperty(AccountEntityName + FieldNameDelimiter + "emailaddress1")]
         public string AccountEmail { get; set; }
 
@@ -38,7 +38,7 @@ namespace IndexModels
         [JsonProperty(AccountEntityName + FieldNameDelimiter + "tickersymbol")]
         public string AccountTickerSymbol { get; set; }
 
-        [IsSearchable, IsFilterable, IsFacetable, Analyzer(UaxUrlEmailAnalyzerName)]
+        [IsSearchable, IsFilterable, IsFacetable, Analyzer(BizQAUaxUrlEmailAnalyzerName)]
         [JsonProperty(AccountEntityName + FieldNameDelimiter + "websiteurl")]
         public string AccountWebSite { get; set; }
     }
