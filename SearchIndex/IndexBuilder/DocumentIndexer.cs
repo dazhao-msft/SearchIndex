@@ -30,6 +30,7 @@ namespace IndexBuilder
             {
                 Name = indexName,
                 Fields = FieldBuilder.BuildForType<Document>(),
+                Analyzers = new[] { Document.UaxUrlEmailAnalyzer },
             };
 
             await serviceClient.Indexes.CreateAsync(definition);

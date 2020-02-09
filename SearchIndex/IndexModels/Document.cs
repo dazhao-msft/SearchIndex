@@ -13,12 +13,21 @@ namespace IndexModels
     {
         #region Common
 
-        public const string DocumentAnalyzerName = AnalyzerName.AsString.EnMicrosoft;
+        public const string DefaultAnalyzerName = AnalyzerName.AsString.EnMicrosoft;
 
         public const string FieldNameDelimiter = "__";
 
         public const string EntityIdFieldName = "entity_id";
         public const string EntityNameFieldName = "entity_name";
+
+        public const string UaxUrlEmailAnalyzerName = "uax-url-email";
+
+        public static readonly CustomAnalyzer UaxUrlEmailAnalyzer = new CustomAnalyzer()
+        {
+            Name = UaxUrlEmailAnalyzerName,
+            Tokenizer = TokenizerName.UaxUrlEmail,
+            TokenFilters = new[] { TokenFilterName.Lowercase },
+        };
 
         [Key]
         [IsFilterable]

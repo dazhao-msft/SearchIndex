@@ -40,7 +40,7 @@ namespace IndexServer.Services
             var analyzeRequest = new AnalyzeRequest()
             {
                 Text = searchText,
-                Analyzer = Document.DocumentAnalyzerName,
+                Analyzer = Document.DefaultAnalyzerName,
             };
 
             IList<TokenInfo> tokens = null;
