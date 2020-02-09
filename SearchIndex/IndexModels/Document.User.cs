@@ -14,7 +14,7 @@ namespace IndexModels
         [PrimaryField]
         public string UserFullName { get; set; }
 
-        [IsSearchable, IsFilterable, IsFacetable, Analyzer(BizQAUaxUrlEmailAnalyzerName)]
+        [IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
         [JsonProperty(UserEntityName + FieldNameDelimiter + "internalemailaddress")]
         public string UserPrimaryEmail { get; set; }
 

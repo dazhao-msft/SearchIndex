@@ -15,23 +15,6 @@ namespace IndexModels
 
         public const string DefaultAnalyzerName = AnalyzerName.AsString.EnMicrosoft;
 
-        public const string BizQADefaultAnalyzerName = "bizqa-default-analyzer";
-
-        public static readonly CustomAnalyzer BizQADefaultAnalyzer = new CustomAnalyzer()
-        {
-            Name = BizQADefaultAnalyzerName,
-            Tokenizer = TokenizerName.Standard,
-        };
-
-        public const string BizQAUaxUrlEmailAnalyzerName = "bizqa-uax-url-email-analyzer";
-
-        public static readonly CustomAnalyzer BizQAUaxUrlEmailAnalyzer = new CustomAnalyzer()
-        {
-            Name = BizQAUaxUrlEmailAnalyzerName,
-            Tokenizer = TokenizerName.UaxUrlEmail,
-            TokenFilters = new[] { TokenFilterName.Lowercase, TokenFilterName.Stemmer },
-        };
-
         #endregion Analyzers
 
         #region Common fields
