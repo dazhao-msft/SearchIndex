@@ -1,4 +1,5 @@
-﻿using IndexServer.Models;
+﻿using IndexModels;
+using IndexServer.Models;
 using IndexServer.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -23,7 +24,7 @@ namespace IndexServer.Controllers
         [HttpGet("Analyze")]
         public async Task<ActionResult<IReadOnlyCollection<MatchedTerm>>> AnalyzeAsync([FromQuery] string query, [FromQuery] string analyzer)
         {
-            return Ok(await _searchProvider.AnalyzeAsync(query, analyzer));
+            return Ok(await _searchProvider.AnalyzeAsync(query, string.IsNullOrEmpty(analyzer) ? Document.DefaultAnalyzerName : analyzer));
         }
 
         [HttpGet("Search")]
