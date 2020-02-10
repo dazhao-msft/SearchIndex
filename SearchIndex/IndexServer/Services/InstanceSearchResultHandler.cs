@@ -105,6 +105,11 @@ namespace IndexServer.Services
                                     });
 
                                     context.MatchedTerms.Add(matchedTerm);
+
+                                    if (StringComparer.OrdinalIgnoreCase.Equals(matchedText, fieldValue))
+                                    {
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -140,12 +145,12 @@ namespace IndexServer.Services
                 }
             }
 
-            for (int i = 0; i < sortedSubsetOfSearchTokens.Count; i++)
+            for (int i = sortedSubsetOfSearchTokens.Count; i > 0; i--)
             {
-                for (int j = i; j < sortedSubsetOfSearchTokens.Count; j++)
+                for (int j = 0; i + j - 1 < sortedSubsetOfSearchTokens.Count; j++)
                 {
-                    int startOffset = (int)sortedSubsetOfSearchTokens[i].StartOffset;
-                    int endOffset = (int)sortedSubsetOfSearchTokens[j].EndOffset;
+                    int startOffset = (int)sortedSubsetOfSearchTokens[j].StartOffset;
+                    int endOffset = (int)sortedSubsetOfSearchTokens[i + j - 1].EndOffset;
                     string matchedText = context.SearchText[startOffset..endOffset];
 
                     yield return (matchedText, startOffset);
