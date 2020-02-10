@@ -34,29 +34,29 @@ namespace IndexServer.Services
                 {
                     foreach (string fragment in highlight.Value)
                     {
-                        foreach (var tokenFromFragment in TokenHelper.GetTokensFromText(fragment, context.SearchParameters.HighlightPreTag, context.SearchParameters.HighlightPostTag))
+                        foreach (var fragmentToken in TokenHelper.GetTokensFromText(fragment, context.SearchParameters.HighlightPreTag, context.SearchParameters.HighlightPostTag))
                         {
                             //
                             // Question: what if the same word shows in multiple positions?
                             //
-                            var token = context.QueryTokens.FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.Token, tokenFromFragment.Token));
+                            var searchToken = context.SearchTokens.FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.Token, fragmentToken.Token));
 
-                            if (token == null)
+                            if (searchToken == null)
                             {
-                                _logger.LogWarning($"Token value '{tokenFromFragment.Token}' isn't matched.");
+                                _logger.LogWarning($"Token value '{fragmentToken.Token}' isn't matched.");
                                 continue;
                             }
 
                             //
                             // Question: why offset is nullable?
                             //
-                            string matchedText = context.SearchText[(int)token.StartOffset..(int)token.EndOffset];
+                            string matchedText = context.SearchText[(int)searchToken.StartOffset..(int)searchToken.EndOffset];
                             string fieldValue = searchResult.Document[highlight.Key].ToString();
 
                             var matchedTerm = new MatchedTerm
                             {
                                 Text = matchedText,
-                                StartIndex = (int)token.StartOffset,
+                                StartIndex = (int)searchToken.StartOffset,
                                 Length = matchedText.Length,
                                 TermBindings = new HashSet<TermBinding>(),
                             };

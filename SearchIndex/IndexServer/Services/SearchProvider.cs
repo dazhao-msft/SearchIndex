@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AzureSearchDocument = Microsoft.Azure.Search.Models.Document;
 using Document = IndexModels.Document;
@@ -61,11 +62,11 @@ namespace IndexServer.Services
                 Analyzer = Document.DefaultAnalyzerName,
             };
 
-            IList<TokenInfo> tokens = null;
+            IList<TokenInfo> searchTokens = null;
             using (var benchmarkScope = new BenchmarkScope(_logger, "analyzing text"))
             {
                 var searchServiceClient = _searchClientProvider.CreateSearchServiceClient();
-                tokens = (await searchServiceClient.Indexes.AnalyzeAsync(_configuration["SearchIndexName"], analyzeRequest)).Tokens;
+                searchTokens = (await searchServiceClient.Indexes.AnalyzeAsync(_configuration["SearchIndexName"], analyzeRequest)).Tokens;
             }
 
             var searchParameters = new SearchParameters()
@@ -86,7 +87,7 @@ namespace IndexServer.Services
 
             var matchedTerms = new HashSet<MatchedTerm>();
 
-            var searchResultHandlerContext = new SearchResultHandlerContext(searchText, tokens, searchParameters, searchResults, matchedTerms);
+            var searchResultHandlerContext = new SearchResultHandlerContext(searchText, searchTokens.ToList(), searchParameters, searchResults.ToList(), matchedTerms);
 
             foreach (var searchResultHandler in _searchResultHandlers)
             {

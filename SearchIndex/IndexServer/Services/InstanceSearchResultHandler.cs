@@ -1,10 +1,12 @@
 ﻿using IndexModels;
 using IndexServer.Models;
+using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Document = IndexModels.Document;
 
 namespace IndexServer.Services
 {
@@ -36,31 +38,16 @@ namespace IndexServer.Services
                 {
                     if (Document.TryResolveCdsAttributeName(highlight.Key, cdsEntityName, out string cdsAttributeName))
                     {
+                        string fieldValue = searchResult.Document[highlight.Key].ToString();
+
                         foreach (string fragment in highlight.Value)
                         {
-                            foreach (var tokenFromFragment in TokenHelper.GetTokensFromText(fragment, context.SearchParameters.HighlightPreTag, context.SearchParameters.HighlightPostTag))
+                            foreach ((string matchedText, int startOffset) in FindMatchedTexts(context, fragment))
                             {
-                                //
-                                // Question: what if the same word shows in multiple positions?
-                                //
-                                var token = context.QueryTokens.FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.Token, tokenFromFragment.Token));
-
-                                if (token == null)
-                                {
-                                    _logger.LogWarning($"Token value '{tokenFromFragment.Token}' isn't matched.");
-                                    continue;
-                                }
-
-                                //
-                                // Question: why offset is nullable?
-                                //
-                                string matchedText = context.SearchText[(int)token.StartOffset..(int)token.EndOffset];
-                                string fieldValue = searchResult.Document[highlight.Key].ToString();
-
                                 var matchedTerm = new MatchedTerm
                                 {
                                     Text = matchedText,
-                                    StartIndex = (int)token.StartOffset,
+                                    StartIndex = startOffset,
                                     Length = matchedText.Length,
                                     TermBindings = new HashSet<TermBinding>(),
                                 };
@@ -82,6 +69,46 @@ namespace IndexServer.Services
                             }
                         }
                     }
+                }
+            }
+        }
+
+        private IEnumerable<(string, int)> FindMatchedTexts(SearchResultHandlerContext context, string fragment)
+        {
+            var fragmentTokens = TokenHelper.GetTokensFromText(fragment, context.SearchParameters.HighlightPreTag, context.SearchParameters.HighlightPostTag);
+
+            var subsetOfSearchTokens = new HashSet<TokenInfo>();
+
+            foreach (var fragmentToken in fragmentTokens)
+            {
+                foreach (var searchToken in context.SearchTokens)
+                {
+                    if (StringComparer.OrdinalIgnoreCase.Equals(searchToken.Token, fragmentToken.Token))
+                    {
+                        subsetOfSearchTokens.Add(searchToken);
+                    }
+                }
+            }
+
+            var sortedSubsetOfSearchTokens = subsetOfSearchTokens.OrderBy(p => p.StartOffset).ToList();
+
+            for (int i = 1; i < sortedSubsetOfSearchTokens.Count; i++)
+            {
+                if (sortedSubsetOfSearchTokens[i - 1].EndOffset > sortedSubsetOfSearchTokens[i].StartOffset)
+                {
+                    _logger.LogWarning("Assumption broken");
+                }
+            }
+
+            for (int i = 0; i < sortedSubsetOfSearchTokens.Count; i++)
+            {
+                for (int j = i; j < sortedSubsetOfSearchTokens.Count; j++)
+                {
+                    int startOffset = (int)sortedSubsetOfSearchTokens[i].StartOffset;
+                    int endOffset = (int)sortedSubsetOfSearchTokens[j].EndOffset;
+                    string matchedText = context.SearchText[startOffset..endOffset];
+
+                    yield return (matchedText, startOffset);
                 }
             }
         }
