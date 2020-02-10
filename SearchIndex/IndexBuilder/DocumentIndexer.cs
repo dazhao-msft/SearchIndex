@@ -15,6 +15,35 @@ namespace IndexBuilder
     {
         public static async Task ForceCreateIndexAsync(ISearchServiceClient serviceClient, string indexName)
         {
+            //
+            // Synonym map
+            //
+
+            const string SynonymMapName = "bizqa";
+
+            Console.WriteLine($"Creating or updating synonym map '{SynonymMapName}'...");
+
+            var synonyms = new[]
+            {
+                "USA, United States, United States of America",
+                "LA, Los Angeles",
+                "Washington, Wash., WA => WA",
+            };
+
+            var synonymMap = new SynonymMap()
+            {
+                Name = SynonymMapName,
+                Synonyms = string.Join('\n', synonyms),
+            };
+
+            await serviceClient.SynonymMaps.CreateOrUpdateAsync(synonymMap);
+
+            Console.WriteLine($"Synonym map '{SynonymMapName}' was created.");
+
+            //
+            // Index
+            //
+
             if (await serviceClient.Indexes.ExistsAsync(indexName))
             {
                 Console.WriteLine($"Index '{indexName}' exists. Deleting the existing index...");
@@ -26,13 +55,25 @@ namespace IndexBuilder
 
             Console.WriteLine($"Creating index '{indexName}'...");
 
-            var definition = new Index()
+            var index = new Index()
             {
                 Name = indexName,
                 Fields = FieldBuilder.BuildForType<Document>(),
             };
 
-            await serviceClient.Indexes.CreateAsync(definition);
+            index.Fields.First(f => f.Name == "lead__address1_country").SynonymMaps = new[] { SynonymMapName };
+            index.Fields.First(f => f.Name == "contact__address1_country").SynonymMaps = new[] { SynonymMapName };
+            index.Fields.First(f => f.Name == "account__address1_country").SynonymMaps = new[] { SynonymMapName };
+
+            index.Fields.First(f => f.Name == "lead__address1_city").SynonymMaps = new[] { SynonymMapName };
+            index.Fields.First(f => f.Name == "contact__address1_city").SynonymMaps = new[] { SynonymMapName };
+            index.Fields.First(f => f.Name == "account__address1_city").SynonymMaps = new[] { SynonymMapName };
+
+            index.Fields.First(f => f.Name == "lead__address1_stateorprovince").SynonymMaps = new[] { SynonymMapName };
+            index.Fields.First(f => f.Name == "contact__address1_stateorprovince").SynonymMaps = new[] { SynonymMapName };
+            index.Fields.First(f => f.Name == "account__address1_stateorprovince").SynonymMaps = new[] { SynonymMapName };
+
+            await serviceClient.Indexes.CreateAsync(index);
 
             Console.WriteLine($"Index '{indexName}' was created.");
         }
