@@ -78,16 +78,25 @@ namespace IndexServer.Services
                 HighlightPostTag = "</em>",
             };
 
-            IList<SearchResult<AzureSearchDocument>> searchResults = null;
+            var searchResults = new List<SearchResult<AzureSearchDocument>>();
+
             using (var benchmarkScope = new BenchmarkScope(_logger, "searching text"))
             {
                 var searchIndexClient = _searchClientProvider.CreateSearchIndexClient();
-                searchResults = (await searchIndexClient.Documents.SearchAsync(searchText, searchParameters)).Results;
+
+                var currentResult = await searchIndexClient.Documents.SearchAsync(searchText, searchParameters);
+                searchResults.AddRange(currentResult.Results);
+
+                while (currentResult.ContinuationToken != null)
+                {
+                    currentResult = await searchIndexClient.Documents.ContinueSearchAsync(currentResult.ContinuationToken);
+                    searchResults.AddRange(currentResult.Results);
+                }
             }
 
             var matchedTerms = new HashSet<MatchedTerm>();
 
-            var searchResultHandlerContext = new SearchResultHandlerContext(searchText, searchTokens.ToList(), searchParameters, searchResults.ToList(), matchedTerms);
+            var searchResultHandlerContext = new SearchResultHandlerContext(searchText, searchTokens.ToList(), searchParameters, searchResults, matchedTerms);
 
             foreach (var searchResultHandler in _searchResultHandlers)
             {

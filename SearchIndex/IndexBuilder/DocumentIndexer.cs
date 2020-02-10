@@ -104,7 +104,28 @@ namespace IndexBuilder
 
                 foreach (var propertyToIndex in propertiesToIndex)
                 {
-                    propertyToIndex.PropertyInfo.SetValue(document, entity[propertyToIndex.CdsAttributeName].ToString());
+                    string value = entity[propertyToIndex.CdsAttributeName].ToString();
+
+                    //
+                    // Appends a list of synonyms to the value if applicable.
+                    //
+
+                    if (propertyToIndex.CdsAttributeName == "address1_city" && SynonymMap.CitySynonymMap.TryGetSynonyms(value.Trim(), out string synonyms))
+                    {
+                        value = $"{value},{synonyms}";
+                    }
+
+                    if (propertyToIndex.CdsAttributeName == "address1_stateorprovince" && SynonymMap.StateOrProvinceSynonymMap.TryGetSynonyms(value.Trim(), out synonyms))
+                    {
+                        value = $"{value},{synonyms}";
+                    }
+
+                    if (propertyToIndex.CdsAttributeName == "address1_country" && SynonymMap.CountrySynonymMap.TryGetSynonyms(value.Trim(), out synonyms))
+                    {
+                        value = $"{value},{synonyms}";
+                    }
+
+                    propertyToIndex.PropertyInfo.SetValue(document, value);
                 }
 
                 //

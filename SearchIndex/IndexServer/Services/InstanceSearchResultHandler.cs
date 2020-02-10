@@ -40,32 +40,82 @@ namespace IndexServer.Services
                     {
                         string fieldValue = searchResult.Document[highlight.Key].ToString();
 
-                        foreach (string fragment in highlight.Value)
+                        if (cdsAttributeName == "address1_city" || cdsAttributeName == "address1_stateorprovince" || cdsAttributeName == "address1_country")
                         {
-                            foreach ((string matchedText, int startOffset) in FindMatchedTexts(context, fragment))
+                            //
+                            // These attributes may have synonyms. Need special handling.
+                            //
+
+                            string[] synonyms = fieldValue.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+                            if (synonyms.Length < 1)
                             {
-                                var matchedTerm = new MatchedTerm
-                                {
-                                    Text = matchedText,
-                                    StartIndex = startOffset,
-                                    Length = matchedText.Length,
-                                    TermBindings = new HashSet<TermBinding>(),
-                                };
+                                _logger.LogWarning("Attribute with synonyms is ill formatted.");
+                                continue;
+                            }
 
-                                matchedTerm.TermBindings.Add(new TermBinding()
+                            for (int i = 0; i < synonyms.Length; i++)
+                            {
+                                int startOffset = context.SearchText.IndexOf(synonyms[i], StringComparison.OrdinalIgnoreCase);
+
+                                if (startOffset >= 0)
                                 {
-                                    BindingType = BindingType.InstanceValue,
-                                    SearchScope = new SearchScope()
+                                    string matchedText = synonyms[i];
+
+                                    var matchedTerm = new MatchedTerm
                                     {
-                                        Table = cdsEntityName,
-                                        Column = cdsAttributeName,
-                                    },
-                                    Value = fieldValue,
-                                    IsExactlyMatch = StringComparer.OrdinalIgnoreCase.Equals(matchedText, fieldValue),
-                                    IsSynonymMatch = false,
-                                });
+                                        Text = matchedText,
+                                        StartIndex = startOffset,
+                                        Length = matchedText.Length,
+                                        TermBindings = new HashSet<TermBinding>(),
+                                    };
 
-                                context.MatchedTerms.Add(matchedTerm);
+                                    matchedTerm.TermBindings.Add(new TermBinding()
+                                    {
+                                        BindingType = BindingType.InstanceValue,
+                                        SearchScope = new SearchScope()
+                                        {
+                                            Table = cdsEntityName,
+                                            Column = cdsAttributeName,
+                                        },
+                                        Value = synonyms[0], // The actual value is the first synonym.
+                                        IsExactlyMatch = true,
+                                        IsSynonymMatch = !StringComparer.OrdinalIgnoreCase.Equals(synonyms[0], synonyms[i]),
+                                    });
+
+                                    context.MatchedTerms.Add(matchedTerm);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            foreach (string fragment in highlight.Value)
+                            {
+                                foreach ((string matchedText, int startOffset) in FindMatchedTexts(context, fragment))
+                                {
+                                    var matchedTerm = new MatchedTerm
+                                    {
+                                        Text = matchedText,
+                                        StartIndex = startOffset,
+                                        Length = matchedText.Length,
+                                        TermBindings = new HashSet<TermBinding>(),
+                                    };
+
+                                    matchedTerm.TermBindings.Add(new TermBinding()
+                                    {
+                                        BindingType = BindingType.InstanceValue,
+                                        SearchScope = new SearchScope()
+                                        {
+                                            Table = cdsEntityName,
+                                            Column = cdsAttributeName,
+                                        },
+                                        Value = fieldValue,
+                                        IsExactlyMatch = StringComparer.OrdinalIgnoreCase.Equals(matchedText, fieldValue),
+                                        IsSynonymMatch = false,
+                                    });
+
+                                    context.MatchedTerms.Add(matchedTerm);
+                                }
                             }
                         }
                     }
