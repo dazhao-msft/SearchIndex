@@ -40,19 +40,9 @@ namespace IndexServer.Services
                     {
                         string fieldValue = searchResult.Document[highlight.Key].ToString();
 
-                        if (cdsAttributeName == "address1_city" || cdsAttributeName == "address1_stateorprovince" || cdsAttributeName == "address1_country")
+                        if (ContainsSynonyms(cdsEntityName, cdsAttributeName, fieldValue))
                         {
-                            //
-                            // These attributes may have synonyms. Need special handling.
-                            //
-
                             string[] synonyms = fieldValue.Split(',', StringSplitOptions.RemoveEmptyEntries);
-
-                            if (synonyms.Length < 1)
-                            {
-                                _logger.LogWarning("Attribute with synonyms is ill formatted.");
-                                continue;
-                            }
 
                             for (int i = 0; i < synonyms.Length; i++)
                             {
@@ -161,6 +151,19 @@ namespace IndexServer.Services
                     yield return (matchedText, startOffset);
                 }
             }
+        }
+
+        private bool ContainsSynonyms(string cdsEntityName, string cdsAttributeName, string fieldValue)
+        {
+            if (cdsAttributeName == "address1_city" ||
+                cdsAttributeName == "address1_stateorprovince" ||
+                cdsAttributeName == "address1_country" ||
+                (cdsEntityName == "account" && cdsAttributeName == "name"))
+            {
+                return fieldValue.Split(',', StringSplitOptions.RemoveEmptyEntries).Length > 1;
+            }
+
+            return false;
         }
     }
 }

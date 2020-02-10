@@ -125,6 +125,11 @@ namespace IndexBuilder
                         value = $"{value},{synonyms}";
                     }
 
+                    if (entityName == "account" && propertyToIndex.CdsAttributeName == "name" && SynonymMap.OrganizationSynonymMap.TryGetSynonyms(value.Trim(), out synonyms))
+                    {
+                        value = $"{value},{synonyms}";
+                    }
+
                     propertyToIndex.PropertyInfo.SetValue(document, value);
                 }
 
