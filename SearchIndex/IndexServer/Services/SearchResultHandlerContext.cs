@@ -8,13 +8,13 @@ namespace IndexServer.Services
     {
         public SearchResultHandlerContext(
             string searchText,
-            IList<TokenInfo> tokens,
+            IList<TokenInfo> queryTokens,
             SearchParameters searchParameters,
             IList<SearchResult<Document>> searchResults,
             ICollection<MatchedTerm> matchedTerms)
         {
             SearchText = searchText;
-            Tokens = tokens;
+            QueryTokens = queryTokens;
             SearchParameters = searchParameters;
             SearchResults = searchResults;
             MatchedTerms = matchedTerms;
@@ -22,7 +22,7 @@ namespace IndexServer.Services
 
         public string SearchText { get; }
 
-        public IList<TokenInfo> Tokens { get; }
+        public IList<TokenInfo> QueryTokens { get; }
 
         public SearchParameters SearchParameters { get; }
 

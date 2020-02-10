@@ -34,16 +34,16 @@ namespace IndexServer.Services
                 {
                     foreach (string fragment in highlight.Value)
                     {
-                        foreach (string tokenValue in TokenHelper.GetTokenValuesFromFragment(fragment, context.SearchParameters.HighlightPreTag, context.SearchParameters.HighlightPostTag))
+                        foreach (var tokenFromFragment in TokenHelper.GetTokensFromText(fragment, context.SearchParameters.HighlightPreTag, context.SearchParameters.HighlightPostTag))
                         {
                             //
                             // Question: what if the same word shows in multiple positions?
                             //
-                            var token = context.Tokens.FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.Token, tokenValue));
+                            var token = context.QueryTokens.FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.Token, tokenFromFragment.Token));
 
                             if (token == null)
                             {
-                                _logger.LogWarning($"Token value '{tokenValue}' isn't matched.");
+                                _logger.LogWarning($"Token value '{tokenFromFragment.Token}' isn't matched.");
                                 continue;
                             }
 
