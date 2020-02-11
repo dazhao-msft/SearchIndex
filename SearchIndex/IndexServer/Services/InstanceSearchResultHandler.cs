@@ -50,7 +50,7 @@ namespace IndexServer.Services
 
                                 if (startOffset >= 0)
                                 {
-                                    string matchedText = synonyms[i];
+                                    string matchedText = context.SearchText.Substring(startOffset, synonyms[i].Length);
 
                                     var matchedTerm = new MatchedTerm
                                     {
