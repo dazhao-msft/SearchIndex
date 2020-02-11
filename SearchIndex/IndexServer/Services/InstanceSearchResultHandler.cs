@@ -106,7 +106,12 @@ namespace IndexServer.Services
 
                                     context.MatchedTerms.Add(matchedTerm);
 
-                                    if (StringComparer.OrdinalIgnoreCase.Equals(matchedText, fieldValue))
+                                    //
+                                    // The longest matched text is returned first. If the given matched text is a sub string of field value, it is
+                                    // unnecessary to continue.
+                                    //
+
+                                    if (fieldValue.IndexOf(matchedText, StringComparison.OrdinalIgnoreCase) >= 0)
                                     {
                                         break;
                                     }
