@@ -125,7 +125,7 @@ namespace IndexServer.Services
 
         private IEnumerable<(string, int)> FindMatchedTexts(SearchResultHandlerContext context, string fragment)
         {
-            var fragmentTokens = TokenHelper.GetTokensFromText(fragment, context.SearchParameters.HighlightPreTag, context.SearchParameters.HighlightPostTag);
+            var fragmentTokens = FragmentHelper.GetTokensFromFragment(fragment, context.SearchParameters.HighlightPreTag, context.SearchParameters.HighlightPostTag);
 
             var subsetOfSearchTokens = new HashSet<TokenInfo>();
 

@@ -34,7 +34,7 @@ namespace IndexServer.Services
                 {
                     foreach (string fragment in highlight.Value)
                     {
-                        foreach (var fragmentToken in TokenHelper.GetTokensFromText(fragment, context.SearchParameters.HighlightPreTag, context.SearchParameters.HighlightPostTag))
+                        foreach (var fragmentToken in FragmentHelper.GetTokensFromFragment(fragment, context.SearchParameters.HighlightPreTag, context.SearchParameters.HighlightPostTag))
                         {
                             //
                             // Question: what if the same word shows in multiple positions?
