@@ -14,16 +14,16 @@ namespace IndexModels
         [PrimaryField]
         public string UserFullName { get; set; }
 
-        [IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
-        [JsonProperty(UserEntityName + FieldNameDelimiter + "internalemailaddress")]
-        public string UserPrimaryEmail { get; set; }
+        //[IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
+        //[JsonProperty(UserEntityName + FieldNameDelimiter + "internalemailaddress")]
+        //public string UserPrimaryEmail { get; set; }
 
-        [IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
-        [JsonProperty(UserEntityName + FieldNameDelimiter + "address1_telephone1")]
-        public string UserMainPhone { get; set; }
+        //[IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
+        //[JsonProperty(UserEntityName + FieldNameDelimiter + "address1_telephone1")]
+        //public string UserMainPhone { get; set; }
 
-        [IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
-        [JsonProperty(UserEntityName + FieldNameDelimiter + "jobtitle")]
-        public string UserJobTitle { get; set; }
+        //[IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
+        //[JsonProperty(UserEntityName + FieldNameDelimiter + "jobtitle")]
+        //public string UserJobTitle { get; set; }
     }
 }
