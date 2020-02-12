@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace IndexBuilder
 {
@@ -11,19 +12,47 @@ namespace IndexBuilder
         public static readonly SynonymMap CountrySynonymMap = new SynonymMap(@"Synonyms\Country.csv");
         public static readonly SynonymMap OrganizationSynonymMap = new SynonymMap(@"Synonyms\Organization.csv");
 
-        private readonly Dictionary<string, string> _synonymMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, HashSet<string>> _synonymMap = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
 
         public SynonymMap(string synonymMapFile)
         {
+            var synonymSetList = new List<HashSet<string>>();
+
             foreach (string line in File.ReadAllLines(synonymMapFile))
             {
-                foreach (string synonym in line.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                synonymSetList.Add(new HashSet<string>(line.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()), StringComparer.OrdinalIgnoreCase));
+            }
+
+            foreach (var synonymSet in synonymSetList)
+            {
+                foreach (string synonym in synonymSet)
                 {
-                    _synonymMap.TryAdd(synonym.Trim(), line);
+                    if (!_synonymMap.ContainsKey(synonym))
+                    {
+                        _synonymMap[synonym] = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    }
+
+                    _synonymMap[synonym].UnionWith(synonymSet);
                 }
+            }
+
+            foreach (var kvp in _synonymMap)
+            {
+                kvp.Value.Remove(kvp.Key);
             }
         }
 
-        public bool TryGetSynonyms(string value, out string synonyms) => _synonymMap.TryGetValue(value, out synonyms);
+        public bool TryGetSynonyms(string value, out string synonyms)
+        {
+            synonyms = null;
+
+            if (_synonymMap.TryGetValue(value, out var synonymSet))
+            {
+                synonyms = string.Join(',', synonymSet);
+                return true;
+            }
+
+            return false;
+        }
     }
 }
