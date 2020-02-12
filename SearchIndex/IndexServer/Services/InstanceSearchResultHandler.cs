@@ -1,5 +1,4 @@
-﻿using IndexModels;
-using IndexServer.Models;
+﻿using IndexServer.Models;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Logging;
 using System;

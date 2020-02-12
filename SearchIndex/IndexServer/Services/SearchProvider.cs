@@ -104,7 +104,33 @@ namespace IndexServer.Services
                 await searchResultHandler.ProcessAsync(searchResultHandlerContext);
             }
 
-            return matchedTerms;
+            //
+            // Merge term bindings
+            //
+
+            var consolidatedMatchedTerms = new List<MatchedTerm>();
+
+            foreach (var matchedTerm in matchedTerms)
+            {
+                int index = consolidatedMatchedTerms.FindIndex(p => p.Text == matchedTerm.Text && p.StartIndex == matchedTerm.StartIndex && p.Length == matchedTerm.Length);
+
+                if (index < 0)
+                {
+                    consolidatedMatchedTerms.Add(new MatchedTerm()
+                    {
+                        Text = matchedTerm.Text,
+                        StartIndex = matchedTerm.StartIndex,
+                        Length = matchedTerm.Length,
+                        TermBindings = new HashSet<TermBinding>(),
+                    });
+
+                    index = consolidatedMatchedTerms.Count - 1;
+                }
+
+                consolidatedMatchedTerms[index].TermBindings.UnionWith(matchedTerm.TermBindings);
+            }
+
+            return consolidatedMatchedTerms;
         }
     }
 }
