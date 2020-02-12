@@ -30,6 +30,7 @@ namespace IndexBuilder
             {
                 Name = indexName,
                 Fields = FieldBuilder.BuildForType<Document>(),
+                ScoringProfiles = new List<ScoringProfile>() { Document.CreatePrimaryFieldFavoredScoringProfile() },
             };
 
             await serviceClient.Indexes.CreateAsync(definition);

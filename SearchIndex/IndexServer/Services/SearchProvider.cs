@@ -73,6 +73,7 @@ namespace IndexServer.Services
             {
                 SearchMode = SearchMode.Any,
                 SearchFields = Document.SearchableFields,
+                ScoringProfile = Document.PrimaryFieldFavoredScoringProfile,
                 HighlightFields = Document.SearchableFields,
                 HighlightPreTag = "<em>",
                 HighlightPostTag = "</em>",

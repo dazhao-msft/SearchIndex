@@ -17,6 +17,12 @@ namespace IndexModels
 
         #endregion Analyzers
 
+        #region Scoring profiles
+
+        public const string PrimaryFieldFavoredScoringProfile = nameof(PrimaryFieldFavoredScoringProfile);
+
+        #endregion Scoring profiles
+
         #region Common fields
 
         public const string FieldNameDelimiter = "__";
@@ -75,6 +81,24 @@ namespace IndexModels
             }
 
             return result;
+        }
+
+        public static ScoringProfile CreatePrimaryFieldFavoredScoringProfile()
+        {
+            var textWeights = new Dictionary<string, double>();
+
+            var properties = typeof(Document).GetProperties().Where(p => p.GetCustomAttribute<IsSearchableAttribute>() != null);
+
+            foreach (var property in properties)
+            {
+                string fieldName = property.GetCustomAttribute<JsonPropertyAttribute>().PropertyName;
+
+                bool isPrimaryField = property.GetCustomAttribute<PrimaryFieldAttribute>() != null;
+
+                textWeights.Add(fieldName, isPrimaryField ? 10.0 : 1.0);
+            }
+
+            return new ScoringProfile() { Name = PrimaryFieldFavoredScoringProfile, TextWeights = new TextWeights(textWeights) };
         }
 
         #endregion Helpers
