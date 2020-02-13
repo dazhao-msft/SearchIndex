@@ -23,6 +23,12 @@ namespace IndexModels
 
         #endregion Scoring profiles
 
+        #region Synonym delimiter
+
+        public const string SynonymDelimiter = " $@@$ ";
+
+        #endregion Synonym delimiter
+
         #region Common fields
 
         public const string FieldNameDelimiter = "__";

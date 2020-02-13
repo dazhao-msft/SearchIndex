@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IndexModels;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -48,7 +49,7 @@ namespace IndexBuilder
 
             if (_synonymMap.TryGetValue(value, out var synonymSet))
             {
-                synonyms = string.Join(',', synonymSet);
+                synonyms = string.Join(Document.SynonymDelimiter, synonymSet);
                 return true;
             }
 

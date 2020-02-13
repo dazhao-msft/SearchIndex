@@ -113,22 +113,22 @@ namespace IndexBuilder
 
                     if (propertyToIndex.CdsAttributeName == "address1_city" && SynonymMap.CitySynonymMap.TryGetSynonyms(value.Trim(), out string synonyms))
                     {
-                        value = $"{value},{synonyms}";
+                        value = $"{value}{Document.SynonymDelimiter}{synonyms}";
                     }
 
                     if (propertyToIndex.CdsAttributeName == "address1_stateorprovince" && SynonymMap.StateOrProvinceSynonymMap.TryGetSynonyms(value.Trim(), out synonyms))
                     {
-                        value = $"{value},{synonyms}";
+                        value = $"{value}{Document.SynonymDelimiter}{synonyms}";
                     }
 
                     if (propertyToIndex.CdsAttributeName == "address1_country" && SynonymMap.CountrySynonymMap.TryGetSynonyms(value.Trim(), out synonyms))
                     {
-                        value = $"{value},{synonyms}";
+                        value = $"{value}{Document.SynonymDelimiter}{synonyms}";
                     }
 
                     if (entityName == "account" && propertyToIndex.CdsAttributeName == "name" && SynonymMap.OrganizationSynonymMap.TryGetSynonyms(value.Trim(), out synonyms))
                     {
-                        value = $"{value},{synonyms}";
+                        value = $"{value}{Document.SynonymDelimiter}{synonyms}";
                     }
 
                     propertyToIndex.PropertyInfo.SetValue(document, value);

@@ -41,7 +41,7 @@ namespace IndexServer.Services
 
                         if (ContainsSynonyms(cdsEntityName, cdsAttributeName, fieldValue))
                         {
-                            string[] synonyms = fieldValue.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                            string[] synonyms = fieldValue.Split(Document.SynonymDelimiter, StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToArray();
 
                             for (int i = 0; i < synonyms.Length; i++)
                             {
@@ -70,6 +70,42 @@ namespace IndexServer.Services
                                         Value = synonyms[0], // The actual value is the first synonym.
                                         IsExactlyMatch = true,
                                         IsSynonymMatch = !StringComparer.OrdinalIgnoreCase.Equals(synonyms[0], synonyms[i]),
+                                    });
+
+                                    context.MatchedTerms.Add(matchedTerm);
+                                }
+                            }
+
+                            //
+                            // TODO: Design a better data structure to support synonym in the same field.
+                            // HACK: Adds the actual value as a partial match if it is not an exact match.
+                            //
+
+                            if (context.SearchText.IndexOf(synonyms[0], StringComparison.OrdinalIgnoreCase) < 0)
+                            {
+                                string matchedText = FindLcs(context.SearchText.AsMemory(), synonyms[0].AsMemory(), CaseInsensitiveCharComparer.Default).Trim().ToString();
+
+                                if (!string.IsNullOrEmpty(matchedText))
+                                {
+                                    var matchedTerm = new MatchedTerm
+                                    {
+                                        Text = matchedText,
+                                        StartIndex = context.SearchText.IndexOf(matchedText, StringComparison.OrdinalIgnoreCase),
+                                        Length = matchedText.Length,
+                                        TermBindings = new HashSet<TermBinding>(),
+                                    };
+
+                                    matchedTerm.TermBindings.Add(new TermBinding()
+                                    {
+                                        BindingType = BindingType.InstanceValue,
+                                        SearchScope = new SearchScope()
+                                        {
+                                            Table = cdsEntityName,
+                                            Column = cdsAttributeName,
+                                        },
+                                        Value = synonyms[0],
+                                        IsExactlyMatch = false,
+                                        IsSynonymMatch = false,
                                     });
 
                                     context.MatchedTerms.Add(matchedTerm);
@@ -169,10 +205,62 @@ namespace IndexServer.Services
                 cdsAttributeName == "address1_country" ||
                 (cdsEntityName == "account" && cdsAttributeName == "name"))
             {
-                return fieldValue.Split(',', StringSplitOptions.RemoveEmptyEntries).Length > 1;
+                return fieldValue.Split(Document.SynonymDelimiter, StringSplitOptions.RemoveEmptyEntries).Length > 1;
             }
 
             return false;
+        }
+
+        private static ReadOnlyMemory<T> FindLcs<T>(ReadOnlyMemory<T> first, ReadOnlyMemory<T> second, IEqualityComparer<T> equalityComparer)
+        {
+            int[,] map = new int[first.Length + 1, second.Length + 1];
+
+            for (int i = 1; i <= first.Length; i++)
+            {
+                for (int j = 1; j <= second.Length; j++)
+                {
+                    if (equalityComparer.Equals(first.Span[i - 1], second.Span[j - 1]))
+                    {
+                        map[i, j] = map[i - 1, j - 1] + 1;
+                    }
+                    else
+                    {
+                        map[i, j] = 0;
+                    }
+                }
+            }
+
+            int length = -1;
+            int index = -1;
+
+            for (int i = 0; i <= first.Length; i++)
+            {
+                for (int j = 0; j <= second.Length; j++)
+                {
+                    if (length < map[i, j])
+                    {
+                        length = map[i, j];
+                        index = i;
+                    }
+                }
+            }
+
+            return first.Slice(index - length, length);
+        }
+
+        private sealed class CaseInsensitiveCharComparer : IEqualityComparer<char>
+        {
+            public static readonly CaseInsensitiveCharComparer Default = new CaseInsensitiveCharComparer();
+
+            public bool Equals(char x, char y)
+            {
+                return char.ToLowerInvariant(x) == char.ToLowerInvariant(y);
+            }
+
+            public int GetHashCode(char obj)
+            {
+                return char.ToLowerInvariant(obj);
+            }
         }
     }
 }
