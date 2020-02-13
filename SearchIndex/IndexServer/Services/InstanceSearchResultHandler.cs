@@ -85,7 +85,7 @@ namespace IndexServer.Services
                             {
                                 string matchedText = FindLcs(context.SearchText.AsMemory(), synonyms[0].AsMemory(), CaseInsensitiveCharComparer.Default).Trim().ToString();
 
-                                if (!string.IsNullOrEmpty(matchedText))
+                                if (!string.IsNullOrEmpty(matchedText) && matchedText.Length > 2)
                                 {
                                     var matchedTerm = new MatchedTerm
                                     {
