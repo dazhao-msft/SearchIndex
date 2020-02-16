@@ -112,7 +112,7 @@ namespace IndexServer.Services
 
             foreach (var matchedTerm in matchedTerms)
             {
-                int index = consolidatedMatchedTerms.FindIndex(p => p.Text == matchedTerm.Text && p.StartIndex == matchedTerm.StartIndex && p.Length == matchedTerm.Length);
+                int index = consolidatedMatchedTerms.FindIndex(p => StringComparer.OrdinalIgnoreCase.Equals(p.Text, matchedTerm.Text) && p.StartIndex == matchedTerm.StartIndex && p.Length == matchedTerm.Length);
 
                 if (index < 0)
                 {
