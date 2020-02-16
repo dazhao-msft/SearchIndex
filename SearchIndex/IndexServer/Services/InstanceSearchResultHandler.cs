@@ -78,15 +78,23 @@ namespace IndexServer.Services
 
                             //
                             // TODO: Design a better data structure to support synonym in the same field.
-                            // HACK: Adds the actual value as a partial match if it is not an exact match.
                             //
 
                             if (context.SearchText.IndexOf(synonyms[0], StringComparison.OrdinalIgnoreCase) < 0)
                             {
-                                string matchedText = FindLcs(context.SearchText.AsMemory(), synonyms[0].AsMemory(), CaseInsensitiveCharComparer.Default).Trim().ToString();
+                                string firstSynonymFragment = highlight.Value[0]?.Split(Document.SynonymDelimiter, StringSplitOptions.RemoveEmptyEntries)?[0];
 
-                                if (!string.IsNullOrEmpty(matchedText) && matchedText.Length > 2)
+                                if (!string.IsNullOrEmpty(firstSynonymFragment) &&
+                                    firstSynonymFragment.Contains(context.SearchParameters.HighlightPreTag, StringComparison.Ordinal) &&
+                                    firstSynonymFragment.Contains(context.SearchParameters.HighlightPostTag, StringComparison.Ordinal))
                                 {
+                                    int startOffset = firstSynonymFragment.IndexOf(context.SearchParameters.HighlightPreTag, StringComparison.Ordinal);
+                                    startOffset += context.SearchParameters.HighlightPreTag.Length;
+
+                                    int endOffset = firstSynonymFragment.IndexOf(context.SearchParameters.HighlightPostTag, StringComparison.Ordinal);
+
+                                    string matchedText = firstSynonymFragment[startOffset..endOffset];
+
                                     var matchedTerm = new MatchedTerm
                                     {
                                         Text = matchedText,
@@ -209,58 +217,6 @@ namespace IndexServer.Services
             }
 
             return false;
-        }
-
-        private static ReadOnlyMemory<T> FindLcs<T>(ReadOnlyMemory<T> first, ReadOnlyMemory<T> second, IEqualityComparer<T> equalityComparer)
-        {
-            int[,] map = new int[first.Length + 1, second.Length + 1];
-
-            for (int i = 1; i <= first.Length; i++)
-            {
-                for (int j = 1; j <= second.Length; j++)
-                {
-                    if (equalityComparer.Equals(first.Span[i - 1], second.Span[j - 1]))
-                    {
-                        map[i, j] = map[i - 1, j - 1] + 1;
-                    }
-                    else
-                    {
-                        map[i, j] = 0;
-                    }
-                }
-            }
-
-            int length = -1;
-            int index = -1;
-
-            for (int i = 0; i <= first.Length; i++)
-            {
-                for (int j = 0; j <= second.Length; j++)
-                {
-                    if (length < map[i, j])
-                    {
-                        length = map[i, j];
-                        index = i;
-                    }
-                }
-            }
-
-            return first.Slice(index - length, length);
-        }
-
-        private sealed class CaseInsensitiveCharComparer : IEqualityComparer<char>
-        {
-            public static readonly CaseInsensitiveCharComparer Default = new CaseInsensitiveCharComparer();
-
-            public bool Equals(char x, char y)
-            {
-                return char.ToLowerInvariant(x) == char.ToLowerInvariant(y);
-            }
-
-            public int GetHashCode(char obj)
-            {
-                return char.ToLowerInvariant(obj);
-            }
         }
     }
 }
