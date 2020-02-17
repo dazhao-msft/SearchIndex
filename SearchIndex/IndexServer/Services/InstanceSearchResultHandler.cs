@@ -45,7 +45,23 @@ namespace IndexServer.Services
 
                             for (int i = 0; i < synonyms.Length; i++)
                             {
-                                int startOffset = context.SearchText.IndexOf(synonyms[i], StringComparison.OrdinalIgnoreCase);
+                                int startOffset = -1;
+
+                                // TODO: Synonym can be matched in multiple places in the search text. Need to deal with the case.
+                                if (synonyms[i].Split(' ', StringSplitOptions.RemoveEmptyEntries).Length == 1)
+                                {
+                                    // The synonym is a single token. Match it with search tokens.
+                                    var matchedToken = context.SearchTokens.FirstOrDefault(t => StringComparer.OrdinalIgnoreCase.Equals(synonyms[i], t.Token));
+                                    if (matchedToken != null)
+                                    {
+                                        startOffset = (int)matchedToken.StartOffset;
+                                    }
+                                }
+                                else
+                                {
+                                    // TODO: have a better algorithm to match the synonym that contains multiple tokens.
+                                    startOffset = context.SearchText.IndexOf(synonyms[i], StringComparison.OrdinalIgnoreCase);
+                                }
 
                                 if (startOffset >= 0)
                                 {
