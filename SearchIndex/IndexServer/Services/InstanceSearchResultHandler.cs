@@ -41,7 +41,7 @@ namespace IndexServer.Services
 
                         if (ContainsSynonyms(cdsEntityName, cdsAttributeName, fieldValue))
                         {
-                            string[] synonyms = fieldValue.Split(Document.SynonymDelimiter, StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToArray();
+                            string[] synonyms = fieldValue.Split(Document.SynonymDelimiter, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToArray();
 
                             for (int i = 0; i < synonyms.Length; i++)
                             {
@@ -80,25 +80,16 @@ namespace IndexServer.Services
                             // TODO: Design a better data structure to support synonym in the same field.
                             //
 
-                            if (context.SearchText.IndexOf(synonyms[0], StringComparison.OrdinalIgnoreCase) < 0)
+                            string firstSynonymFragment = highlight.Value[0]?.Split(Document.SynonymDelimiter, StringSplitOptions.RemoveEmptyEntries)?[0];
+
+                            if (!string.IsNullOrEmpty(firstSynonymFragment))
                             {
-                                string firstSynonymFragment = highlight.Value[0]?.Split(Document.SynonymDelimiter, StringSplitOptions.RemoveEmptyEntries)?[0];
-
-                                if (!string.IsNullOrEmpty(firstSynonymFragment) &&
-                                    firstSynonymFragment.Contains(context.SearchParameters.HighlightPreTag, StringComparison.Ordinal) &&
-                                    firstSynonymFragment.Contains(context.SearchParameters.HighlightPostTag, StringComparison.Ordinal))
+                                foreach ((string matchedText, int startOffset) in FindMatchedTexts(context, firstSynonymFragment))
                                 {
-                                    int startOffset = firstSynonymFragment.IndexOf(context.SearchParameters.HighlightPreTag, StringComparison.Ordinal);
-                                    startOffset += context.SearchParameters.HighlightPreTag.Length;
-
-                                    int endOffset = firstSynonymFragment.IndexOf(context.SearchParameters.HighlightPostTag, StringComparison.Ordinal);
-
-                                    string matchedText = firstSynonymFragment[startOffset..endOffset];
-
                                     var matchedTerm = new MatchedTerm
                                     {
                                         Text = matchedText,
-                                        StartIndex = context.SearchText.IndexOf(matchedText, StringComparison.OrdinalIgnoreCase),
+                                        StartIndex = startOffset,
                                         Length = matchedText.Length,
                                         TermBindings = new HashSet<TermBinding>(),
                                     };
@@ -112,7 +103,7 @@ namespace IndexServer.Services
                                             Column = cdsAttributeName,
                                         },
                                         Value = synonyms[0],
-                                        IsExactlyMatch = false,
+                                        IsExactlyMatch = StringComparer.OrdinalIgnoreCase.Equals(matchedText, synonyms[0]),
                                         IsSynonymMatch = false,
                                     });
 
@@ -148,60 +139,10 @@ namespace IndexServer.Services
                                     });
 
                                     context.MatchedTerms.Add(matchedTerm);
-
-                                    //
-                                    // The longest matched text is returned first. If the given matched text is a sub string of field value, it is
-                                    // unnecessary to continue.
-                                    //
-
-                                    if (fieldValue.IndexOf(matchedText, StringComparison.OrdinalIgnoreCase) >= 0)
-                                    {
-                                        break;
-                                    }
                                 }
                             }
                         }
                     }
-                }
-            }
-        }
-
-        private IEnumerable<(string, int)> FindMatchedTexts(SearchResultHandlerContext context, string fragment)
-        {
-            var fragmentTokens = FragmentHelper.GetTokensFromFragment(fragment, context.SearchParameters.HighlightPreTag, context.SearchParameters.HighlightPostTag);
-
-            var subsetOfSearchTokens = new HashSet<TokenInfo>();
-
-            foreach (var fragmentToken in fragmentTokens)
-            {
-                foreach (var searchToken in context.SearchTokens)
-                {
-                    if (StringComparer.OrdinalIgnoreCase.Equals(searchToken.Token, fragmentToken.Token))
-                    {
-                        subsetOfSearchTokens.Add(searchToken);
-                    }
-                }
-            }
-
-            var sortedSubsetOfSearchTokens = subsetOfSearchTokens.OrderBy(p => p.StartOffset).ToList();
-
-            for (int i = 1; i < sortedSubsetOfSearchTokens.Count; i++)
-            {
-                if (sortedSubsetOfSearchTokens[i - 1].EndOffset > sortedSubsetOfSearchTokens[i].StartOffset)
-                {
-                    _logger.LogWarning("Assumption broken");
-                }
-            }
-
-            for (int i = sortedSubsetOfSearchTokens.Count; i > 0; i--)
-            {
-                for (int j = 0; i + j - 1 < sortedSubsetOfSearchTokens.Count; j++)
-                {
-                    int startOffset = (int)sortedSubsetOfSearchTokens[j].StartOffset;
-                    int endOffset = (int)sortedSubsetOfSearchTokens[i + j - 1].EndOffset;
-                    string matchedText = context.SearchText[startOffset..endOffset];
-
-                    yield return (matchedText, startOffset);
                 }
             }
         }
@@ -217,6 +158,91 @@ namespace IndexServer.Services
             }
 
             return false;
+        }
+
+        private IEnumerable<(string, int)> FindMatchedTexts(SearchResultHandlerContext context, string fragment)
+        {
+            var fragmentTokens = FragmentHelper.GetTokensFromFragment(fragment, context.SearchParameters.HighlightPreTag, context.SearchParameters.HighlightPostTag);
+
+            var fragmentTokenBindings = CreateTokenBindings(fragmentTokens.ToList(), context.SearchTokens);
+
+            for (int length = fragmentTokenBindings.Count; length > 0; length--)
+            {
+                for (int index = 0; index + length - 1 < fragmentTokenBindings.Count; index++)
+                {
+                    var startFragmentTokenBindings = fragmentTokenBindings[index];
+                    var endFragmentTokenBindings = fragmentTokenBindings[index + length - 1];
+
+                    if (startFragmentTokenBindings == endFragmentTokenBindings)
+                    {
+                        foreach (var startSearchToken in startFragmentTokenBindings.SearchTokens)
+                        {
+                            yield return (context.SearchText[((int)startSearchToken.StartOffset)..((int)startSearchToken.EndOffset)], (int)startSearchToken.StartOffset);
+                        }
+                    }
+                    else
+                    {
+                        string fragmentPadding = fragment[((int)startFragmentTokenBindings.FragmentToken.EndOffset)..((int)endFragmentTokenBindings.FragmentToken.StartOffset)];
+                        fragmentPadding = fragmentPadding.Replace(context.SearchParameters.HighlightPreTag, string.Empty).Replace(context.SearchParameters.HighlightPostTag, string.Empty);
+
+                        foreach (var startSearchToken in startFragmentTokenBindings.SearchTokens)
+                        {
+                            foreach (var endSearchToken in endFragmentTokenBindings.SearchTokens)
+                            {
+                                if (startSearchToken.EndOffset <= endSearchToken.StartOffset)
+                                {
+                                    string searchTextPadding = context.SearchText[((int)startSearchToken.EndOffset)..((int)endSearchToken.StartOffset)];
+
+                                    if (ArePaddingsEquivalent(searchTextPadding.AsSpan(), fragmentPadding.AsSpan()))
+                                    {
+                                        yield return (context.SearchText[((int)startSearchToken.StartOffset)..((int)endSearchToken.EndOffset)], (int)startSearchToken.StartOffset);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static bool ArePaddingsEquivalent(ReadOnlySpan<char> padding1, ReadOnlySpan<char> padding2)
+        {
+            if (padding1.IsWhiteSpace() && padding2.IsWhiteSpace())
+            {
+                return true;
+            }
+
+            return padding1.Equals(padding2, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Given a sorted list of fragment tokens and a sorted list of search tokens, creates bindings for each of the fragment tokens.
+        /// </summary>
+        private static IReadOnlyList<FragmentTokenBindings> CreateTokenBindings(IReadOnlyList<TokenInfo> fragmentTokens, IReadOnlyList<TokenInfo> searchTokens)
+        {
+            var bindings = new List<FragmentTokenBindings>();
+
+            foreach (var fragmentToken in fragmentTokens)
+            {
+                var subsetOfSearchTokens = searchTokens.Where(searchToken => StringComparer.OrdinalIgnoreCase.Equals(fragmentToken.Token, searchToken.Token)).ToList();
+
+                if (subsetOfSearchTokens.Count > 0)
+                {
+                    bindings.Add(new FragmentTokenBindings { FragmentToken = fragmentToken, SearchTokens = subsetOfSearchTokens });
+                }
+            }
+
+            return bindings;
+        }
+
+        /// <summary>
+        /// Mapping info between one fragment token to one or multiple search tokens. Search tokens are in order.
+        /// </summary>
+        private class FragmentTokenBindings
+        {
+            public TokenInfo FragmentToken { get; set; }
+
+            public IReadOnlyList<TokenInfo> SearchTokens { get; set; }
         }
     }
 }
