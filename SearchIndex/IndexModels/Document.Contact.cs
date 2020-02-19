@@ -14,22 +14,6 @@ namespace IndexModels
         [PrimaryField]
         public string ContactFullName { get; set; }
 
-        //[IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
-        //[JsonProperty(ContactEntityName + FieldNameDelimiter + "jobtitle")]
-        //public string ContactJobTitle { get; set; }
-
-        //[IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
-        //[JsonProperty(ContactEntityName + FieldNameDelimiter + "telephone1")]
-        //public string ContactBusinessPhone { get; set; }
-
-        //[IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
-        //[JsonProperty(ContactEntityName + FieldNameDelimiter + "mobilephone")]
-        //public string ContactMobilePhone { get; set; }
-
-        //[IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
-        //[JsonProperty(ContactEntityName + FieldNameDelimiter + "emailaddress1")]
-        //public string ContactEmail { get; set; }
-
         [IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
         [JsonProperty(ContactEntityName + FieldNameDelimiter + "address1_city")]
         public string ContactAddress1City { get; set; }
@@ -41,5 +25,13 @@ namespace IndexModels
         [IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
         [JsonProperty(ContactEntityName + FieldNameDelimiter + "address1_country")]
         public string ContactAddress1Country { get; set; }
+
+        [IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
+        [JsonProperty(ContactEntityName + FieldNameDelimiter + "department")]
+        public string ContactDepartment { get; set; }
+
+        [IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
+        [JsonProperty(ContactEntityName + FieldNameDelimiter + "jobtitle")]
+        public string ContactJobTitle { get; set; }
     }
 }

@@ -5,6 +5,7 @@
     <UserSecretsId>256540dc-2a07-4a5b-aac4-c713c61e9f82</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="15.0.0" />
     <PackageReference Include="Microsoft.Azure.Search" Version="10.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.1" />
@@ -16,10 +17,6 @@
   <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
     <None Update="Synonyms\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

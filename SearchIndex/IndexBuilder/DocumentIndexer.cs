@@ -1,8 +1,10 @@
-﻿using Microsoft.Azure.Search;
+﻿using CsvHelper;
+using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,25 +43,48 @@ namespace IndexBuilder
         public static async Task UploadDocumentsAsync(ISearchServiceClient serviceClient, string indexName)
         {
             //
-            // Prepare documents.
+            // Uploads metadata
             //
 
-            Console.WriteLine("Preparing documents...");
+            await UploadDocumentsCoreAsync(serviceClient, indexName, Document.ReadMetadataAsDocuments());
 
-            var documents = new List<Document>();
+            //
+            // Uploads entities
+            //
 
-            documents.AddRange(Document.ReadMetadataAsDocuments());
-            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\accounts.json", Document.AccountEntityName, Document.AccountEntityIdName));
-            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\contacts.json", Document.ContactEntityName, Document.ContactEntityIdName));
-            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\leads.json", Document.LeadEntityName, Document.LeadEntityIdName));
-            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\opportunities.json", Document.OpportunityEntityName, Document.OpportunityEntityIdName));
-            documents.AddRange(await ReadEntitiesAsDocumentsAsync(@"Data\systemusers.json", Document.UserEntityName, Document.UserEntityIdName));
+            const int BufferSize = 5000;
 
+            var buffer = new List<Document>();
+
+            await foreach (var entity in ReadEntitiesAsDocumentsAsync())
+            {
+                buffer.Add(entity);
+
+                if (buffer.Count == BufferSize)
+                {
+                    await UploadDocumentsCoreAsync(serviceClient, indexName, buffer);
+
+                    buffer.Clear();
+                }
+            }
+
+            if (buffer.Count > 0)
+            {
+                await UploadDocumentsCoreAsync(serviceClient, indexName, buffer);
+
+                buffer.Clear();
+            }
+        }
+
+        private static async Task UploadDocumentsCoreAsync(ISearchServiceClient serviceClient, string indexName, IReadOnlyCollection<Document> documents)
+        {
             //
             // Uploads documents.
             //
 
-            Console.WriteLine("Uploading documents...");
+            Console.WriteLine($"Uploading {documents.Count} documents...");
+
+            var sw = Stopwatch.StartNew();
 
             var batch = IndexBatch.Upload(documents);
 
@@ -77,71 +102,94 @@ namespace IndexBuilder
                 Console.WriteLine("Failed to index some of the documents: {0}", string.Join(", ", e.IndexingResults.Where(r => !r.Succeeded).Select(r => r.Key)));
             }
 
-            Console.WriteLine("Uploading documents completed.");
+            sw.Stop();
+
+            Console.WriteLine($"Uploading {documents.Count} documents completed. Elapsed: {sw.ElapsedMilliseconds} ms.");
         }
 
-        private static async Task<IReadOnlyCollection<Document>> ReadEntitiesAsDocumentsAsync(string file, string entityName, string entityIdAttributeName)
+        private static async IAsyncEnumerable<Document> ReadEntitiesAsDocumentsAsync()
         {
-            var documents = new List<Document>();
+            const string DataRootFolder = @"C:\Data\sample";
 
+            var entityMetadataArray = new[]
+            {
+                new { EntityName = Document.AccountEntityName, EntityIdName = Document.AccountEntityIdName },
+                new { EntityName = Document.BusinessUnitEntityName, EntityIdName = Document.BusinessUnitEntityIdName },
+                new { EntityName = Document.ContactEntityName, EntityIdName = Document.ContactEntityIdName },
+                new { EntityName = Document.LeadEntityName, EntityIdName = Document.LeadEntityIdName },
+                new { EntityName = Document.OpportunityEntityName, EntityIdName = Document.OpportunityEntityIdName },
+                new { EntityName = Document.OrganizationEntityName, EntityIdName = Document.OrganizationEntityIdName },
+                new { EntityName = Document.TerritoryEntityName, EntityIdName = Document.TerritoryEntityIdName },
+                new { EntityName = Document.UserEntityName, EntityIdName = Document.UserEntityIdName },
+            };
+
+            foreach (var entityMetadata in entityMetadataArray)
+            {
+                await foreach (var entity in ReadEntitiesAsDocumentsAsync(Path.Combine(DataRootFolder, entityMetadata.EntityName + ".csv"), entityMetadata.EntityName, entityMetadata.EntityIdName))
+                {
+                    yield return entity;
+                }
+            }
+        }
+
+        private static async IAsyncEnumerable<Document> ReadEntitiesAsDocumentsAsync(string csvFile, string entityName, string entityIdAttributeName)
+        {
             var propertiesToIndex = Document.GetPropertiesToIndex(entityName);
 
-            var entities = JsonConvert.DeserializeObject<List<dynamic>>(await File.ReadAllTextAsync(file));
-
-            foreach (var entity in entities)
+            using (var streamReader = new StreamReader(csvFile))
             {
-                var document = new Document();
-
-                //
-                // Fill in the common fields.
-                //
-
-                document.EntityId = entity[entityIdAttributeName];
-                document.EntityName = entityName;
-
-                //
-                // Fill in the fields to be indexed.
-                //
-
-                foreach (var propertyToIndex in propertiesToIndex)
+                using (var csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture))
                 {
-                    string value = entity[propertyToIndex.CdsAttributeName].ToString();
-
-                    //
-                    // Appends a list of synonyms to the value if applicable.
-                    //
-
-                    if (propertyToIndex.CdsAttributeName == "address1_city" && SynonymMap.CitySynonymMap.TryGetSynonyms(value.Trim(), out string synonyms))
+                    await foreach (IDictionary<string, object> entity in csvReader.GetRecordsAsync<dynamic>())
                     {
-                        value = $"{value}{Document.SynonymDelimiter}{synonyms}";
-                    }
+                        var document = new Document();
 
-                    if (propertyToIndex.CdsAttributeName == "address1_stateorprovince" && SynonymMap.StateOrProvinceSynonymMap.TryGetSynonyms(value.Trim(), out synonyms))
-                    {
-                        value = $"{value}{Document.SynonymDelimiter}{synonyms}";
-                    }
+                        //
+                        // Fill in the common fields.
+                        //
 
-                    if (propertyToIndex.CdsAttributeName == "address1_country" && SynonymMap.CountrySynonymMap.TryGetSynonyms(value.Trim(), out synonyms))
-                    {
-                        value = $"{value}{Document.SynonymDelimiter}{synonyms}";
-                    }
+                        document.EntityId = entity[entityIdAttributeName].ToString();
+                        document.EntityName = entityName;
 
-                    if (entityName == "account" && propertyToIndex.CdsAttributeName == "name" && SynonymMap.OrganizationSynonymMap.TryGetSynonyms(value.Trim(), out synonyms))
-                    {
-                        value = $"{value}{Document.SynonymDelimiter}{synonyms}";
-                    }
+                        //
+                        // Fill in the fields to be indexed.
+                        //
 
-                    propertyToIndex.PropertyInfo.SetValue(document, value);
+                        foreach (var propertyToIndex in propertiesToIndex)
+                        {
+                            string value = entity[propertyToIndex.CdsAttributeName].ToString();
+
+                            //
+                            // Appends a list of synonyms to the value if applicable.
+                            //
+
+                            if (propertyToIndex.CdsAttributeName == "address1_city" && SynonymMap.CitySynonymMap.TryGetSynonyms(value.Trim(), out string synonyms))
+                            {
+                                value = $"{value}{Document.SynonymDelimiter}{synonyms}";
+                            }
+
+                            if (propertyToIndex.CdsAttributeName == "address1_stateorprovince" && SynonymMap.StateOrProvinceSynonymMap.TryGetSynonyms(value.Trim(), out synonyms))
+                            {
+                                value = $"{value}{Document.SynonymDelimiter}{synonyms}";
+                            }
+
+                            if (propertyToIndex.CdsAttributeName == "address1_country" && SynonymMap.CountrySynonymMap.TryGetSynonyms(value.Trim(), out synonyms))
+                            {
+                                value = $"{value}{Document.SynonymDelimiter}{synonyms}";
+                            }
+
+                            if (entityName == "account" && propertyToIndex.CdsAttributeName == "name" && SynonymMap.OrganizationSynonymMap.TryGetSynonyms(value.Trim(), out synonyms))
+                            {
+                                value = $"{value}{Document.SynonymDelimiter}{synonyms}";
+                            }
+
+                            propertyToIndex.PropertyInfo.SetValue(document, value);
+                        }
+
+                        yield return document;
+                    }
                 }
-
-                //
-                // Add the document to list.
-                //
-
-                documents.Add(document);
             }
-
-            return documents;
         }
     }
 }

@@ -6,12 +6,12 @@ namespace IndexModels
 {
     public partial class Document
     {
-        public const string UserEntityName = "systemuser";
-        public const string UserEntityIdName = "systemuserid";
+        public const string TerritoryEntityName = "territory";
+        public const string TerritoryEntityIdName = "territoryid";
 
         [IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
-        [JsonProperty(UserEntityName + FieldNameDelimiter + "fullname")]
+        [JsonProperty(TerritoryEntityName + FieldNameDelimiter + "name")]
         [PrimaryField]
-        public string UserFullName { get; set; }
+        public string TerritoryName { get; set; }
     }
 }

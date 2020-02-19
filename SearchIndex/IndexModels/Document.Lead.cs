@@ -33,13 +33,5 @@ namespace IndexModels
         [IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
         [JsonProperty(LeadEntityName + FieldNameDelimiter + "address1_country")]
         public string LeadAddress1Country { get; set; }
-
-        //[IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
-        //[JsonProperty(LeadEntityName + FieldNameDelimiter + "telephone1")]
-        //public string LeadBusinessPhone { get; set; }
-
-        //[IsSearchable, IsFilterable, IsFacetable, Analyzer(DefaultAnalyzerName)]
-        //[JsonProperty(LeadEntityName + FieldNameDelimiter + "jobtitle")]
-        //public string LeadJobTitle { get; set; }
     }
 }
