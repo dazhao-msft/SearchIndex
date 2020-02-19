@@ -1,5 +1,7 @@
 ﻿using Microsoft.Azure.Search;
 using Microsoft.Extensions.Configuration;
+using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace IndexBuilder
@@ -8,19 +10,34 @@ namespace IndexBuilder
     {
         public static async Task Main(string[] args)
         {
-            var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json")
-                                                          .AddUserSecrets(typeof(Program).Assembly)
-                                                          .Build();
+            var sw = Stopwatch.StartNew();
 
-            string adminApiKey = configuration["SearchServiceAdminApiKey"];
-            string searchServiceName = configuration["SearchServiceName"];
-            string searchIndexName = configuration["SearchIndexName"];
+            try
+            {
+                var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json")
+                                                              .AddUserSecrets(typeof(Program).Assembly)
+                                                              .Build();
 
-            var serviceClient = new SearchServiceClient(searchServiceName, new SearchCredentials(adminApiKey));
+                string adminApiKey = configuration["SearchServiceAdminApiKey"];
+                string searchServiceName = configuration["SearchServiceName"];
+                string searchIndexName = configuration["SearchIndexName"];
 
-            await DocumentIndexer.ForceCreateIndexAsync(serviceClient, searchIndexName);
+                var serviceClient = new SearchServiceClient(searchServiceName, new SearchCredentials(adminApiKey));
 
-            await DocumentIndexer.UploadDocumentsAsync(serviceClient, searchIndexName);
+                await DocumentIndexer.ForceCreateIndexAsync(serviceClient, searchIndexName);
+
+                await DocumentIndexer.UploadDocumentsAsync(serviceClient, searchIndexName);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error occurred: {ex.ToString()}");
+            }
+            finally
+            {
+                sw.Stop();
+
+                Console.WriteLine($"Job completed in {sw.Elapsed.TotalSeconds} seconds.");
+            }
         }
     }
 }

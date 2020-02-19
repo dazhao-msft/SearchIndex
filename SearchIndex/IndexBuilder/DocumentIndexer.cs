@@ -52,7 +52,7 @@ namespace IndexBuilder
             // Uploads entities
             //
 
-            const int BufferSize = 5000;
+            const int BufferSize = 20000;
 
             var buffer = new List<Document>();
 
@@ -148,7 +148,16 @@ namespace IndexBuilder
                         // Fill in the common fields.
                         //
 
-                        document.EntityId = entity[entityIdAttributeName].ToString();
+                        document.EntityId = entity[entityIdAttributeName]?.ToString();
+
+                        // Normalize entity id.
+                        if (!Guid.TryParse(document.EntityId, out var entityId))
+                        {
+                            continue;
+                        }
+
+                        document.EntityId = entityId.ToString();
+
                         document.EntityName = entityName;
 
                         //
@@ -157,7 +166,12 @@ namespace IndexBuilder
 
                         foreach (var propertyToIndex in propertiesToIndex)
                         {
-                            string value = entity[propertyToIndex.CdsAttributeName].ToString();
+                            string value = entity[propertyToIndex.CdsAttributeName]?.ToString();
+
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                continue;
+                            }
 
                             //
                             // Appends a list of synonyms to the value if applicable.
