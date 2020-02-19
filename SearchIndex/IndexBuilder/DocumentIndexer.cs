@@ -40,7 +40,7 @@ namespace IndexBuilder
             Console.WriteLine($"Index '{indexName}' was created.");
         }
 
-        public static async Task UploadDocumentsAsync(ISearchServiceClient serviceClient, string indexName)
+        public static async Task UploadDocumentsAsync(ISearchServiceClient serviceClient, string indexName, string dataRootFolder)
         {
             //
             // Uploads metadata
@@ -56,7 +56,7 @@ namespace IndexBuilder
 
             var buffer = new List<Document>();
 
-            await foreach (var entity in ReadEntitiesAsDocumentsAsync())
+            await foreach (var entity in ReadEntitiesAsDocumentsAsync(dataRootFolder))
             {
                 buffer.Add(entity);
 
@@ -107,10 +107,8 @@ namespace IndexBuilder
             Console.WriteLine($"Uploading {documents.Count} documents completed. Elapsed: {sw.ElapsedMilliseconds} ms.");
         }
 
-        private static async IAsyncEnumerable<Document> ReadEntitiesAsDocumentsAsync()
+        private static async IAsyncEnumerable<Document> ReadEntitiesAsDocumentsAsync(string dataRootFolder)
         {
-            const string DataRootFolder = @"C:\Data\sample";
-
             var entityMetadataArray = new[]
             {
                 new { EntityName = Document.AccountEntityName, EntityIdName = Document.AccountEntityIdName },
@@ -125,7 +123,7 @@ namespace IndexBuilder
 
             foreach (var entityMetadata in entityMetadataArray)
             {
-                await foreach (var entity in ReadEntitiesAsDocumentsAsync(Path.Combine(DataRootFolder, entityMetadata.EntityName + ".csv"), entityMetadata.EntityName, entityMetadata.EntityIdName))
+                await foreach (var entity in ReadEntitiesAsDocumentsAsync(Path.Combine(dataRootFolder, entityMetadata.EntityName + ".csv"), entityMetadata.EntityName, entityMetadata.EntityIdName))
                 {
                     yield return entity;
                 }
