@@ -77,6 +77,7 @@ namespace IndexServer.Services
                 HighlightFields = Document.SearchableFields,
                 HighlightPreTag = "<em>",
                 HighlightPostTag = "</em>",
+                Top = 500,
             };
 
             var searchResults = new List<SearchResult<AzureSearchDocument>>();
