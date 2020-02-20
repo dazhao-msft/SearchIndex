@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>Microsoft.BizQA.NLU.QueryRewrite</AssemblyName>
+    <RootNamespace>Microsoft.BizQA.NLU.QueryRewrite</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.1.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NLU.Common\NLU.Common.csproj" />
+    <ProjectReference Include="..\NLU.QueryRewrite.Abstractions\NLU.QueryRewrite.Abstractions.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="build\Microsoft.BizQA.NLU.QueryRewrite.targets" />
+    <None Remove="lib\OfficeSpeller\mscss7en.dll" />
+    <None Remove="lib\OfficeSpeller\MSSP7EN.LEX" />
+    <None Remove="lib\OfficeSpeller\mssp7es.lex" />
+    <None Remove="lib\OfficeSpeller\mssp7ge.lex" />
+    <None Remove="lib\OfficeSpeller\mssp7pt.lex" />
+    <None Remove="lib\OfficeSpeller\msspell7.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="build\Microsoft.BizQA.NLU.QueryRewrite.targets">
+      <Pack>true</Pack>
+      <PackagePath>build</PackagePath>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\OfficeSpeller\mscss7en.dll">
+      <Pack>true</Pack>
+      <PackagePath>native</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\OfficeSpeller\MSSP7EN.LEX">
+      <Pack>true</Pack>
+      <PackagePath>contentFiles</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\OfficeSpeller\mssp7es.lex">
+      <Pack>true</Pack>
+      <PackagePath>contentFiles</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\OfficeSpeller\mssp7ge.lex">
+      <Pack>true</Pack>
+      <PackagePath>contentFiles</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\OfficeSpeller\mssp7pt.lex">
+      <Pack>true</Pack>
+      <PackagePath>contentFiles</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\OfficeSpeller\msspell7.dll">
+      <Pack>true</Pack>
+      <PackagePath>native</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>
