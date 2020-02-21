@@ -13,49 +13,9 @@
     <ProjectReference Include="..\NLU.QueryRewrite.Abstractions\NLU.QueryRewrite.Abstractions.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="build\Microsoft.BizQA.NLU.QueryRewrite.targets" />
-    <None Remove="lib\OfficeSpeller\mscss7en.dll" />
-    <None Remove="lib\OfficeSpeller\MSSP7EN.LEX" />
-    <None Remove="lib\OfficeSpeller\mssp7es.lex" />
-    <None Remove="lib\OfficeSpeller\mssp7ge.lex" />
-    <None Remove="lib\OfficeSpeller\mssp7pt.lex" />
-    <None Remove="lib\OfficeSpeller\msspell7.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="build\Microsoft.BizQA.NLU.QueryRewrite.targets">
-      <Pack>true</Pack>
-      <PackagePath>build</PackagePath>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\OfficeSpeller\mscss7en.dll">
-      <Pack>true</Pack>
-      <PackagePath>native</PackagePath>
+    <None Update="lib\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\OfficeSpeller\MSSP7EN.LEX">
-      <Pack>true</Pack>
-      <PackagePath>contentFiles</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\OfficeSpeller\mssp7es.lex">
-      <Pack>true</Pack>
-      <PackagePath>contentFiles</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\OfficeSpeller\mssp7ge.lex">
-      <Pack>true</Pack>
-      <PackagePath>contentFiles</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\OfficeSpeller\mssp7pt.lex">
-      <Pack>true</Pack>
-      <PackagePath>contentFiles</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="lib\OfficeSpeller\msspell7.dll">
-      <Pack>true</Pack>
-      <PackagePath>native</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
   </ItemGroup>
 </Project>
