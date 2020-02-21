@@ -11,6 +11,7 @@
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="3.1.2" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\IndexModels\IndexModels.csproj" />
     <ProjectReference Include="..\NLU.QueryRewrite\NLU.QueryRewrite.csproj" />
   </ItemGroup>
   <ItemGroup>

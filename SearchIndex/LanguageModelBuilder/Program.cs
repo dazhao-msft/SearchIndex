@@ -20,9 +20,9 @@ namespace LanguageModelBuilder
 
             var serviceProvider = services.BuildServiceProvider(true);
 
-            var tokenizer = QueryRewriteActivator.GetTokenizer(serviceProvider.GetRequiredService<IOptions<QueryRewriteOptions>>().Value);
+            var queryRewriter = QueryRewriteActivator.GetQueryRewriter(serviceProvider.GetRequiredService<IOptions<QueryRewriteOptions>>().Value);
 
-            var result = tokenizer.Tokenize("hello world");
+            var result = queryRewriter.Rewrite("David's hello world", QueryRewriteOperations.AllRegularOperations);
 
             await Task.Yield();
         }
